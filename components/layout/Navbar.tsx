@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Heart, User, ShoppingBag } from "lucide-react";
@@ -20,9 +21,13 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-800 text-sm font-semibold text-white">
-            G
-          </span>
+          <Image
+            src="/Gallery_edge_Logo.png"
+            alt="Gallery Edge"
+            width={32}
+            height={32}
+            className="h-8 w-8 object-contain"
+          />
           <span className="font-serif text-lg font-semibold text-neutral-900">
             Gallery Edge
           </span>
@@ -36,11 +41,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm transition-colors ${
-                  isActive
+                className={`text-sm transition-colors ${isActive
                     ? "text-amber-800 font-medium"
                     : "text-neutral-700 hover:text-amber-800"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
