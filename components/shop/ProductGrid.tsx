@@ -5,11 +5,11 @@ import ProductCard from "./ProductCard";
 import FiltersSidebar from "./FiltersSidebar";
 import SortDropdown, { SortOption } from "./SortDropdown";
 import Pagination from "./Pagination";
-import { products } from "@/lib/products";
+import type { Product } from "@/lib/products";
 
 const PAGE_SIZE = 8;
 
-export default function ProductGrid() {
+export default function ProductGrid({ products }: { products: Product[] }) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(500);
   const [sort, setSort] = useState<SortOption>("featured");
@@ -45,7 +45,7 @@ export default function ProductGrid() {
         break;
     }
     return result;
-  }, [selectedCategories, maxPrice, sort]);
+  }, [products, selectedCategories, maxPrice, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);

@@ -1,35 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import CartItem, { CartItemData } from "@/components/cart/CartItem";
+import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import EmptyCart from "@/components/cart/EmptyCart";
-
-const initialItems: CartItemData[] = [
-  {
-    id: "1",
-    name: "Walnut Gallery Frame",
-    variant: "8x10 · Natural Walnut",
-    price: 189,
-    quantity: 1,
-    image: "/product-images/sacred-names-trio/main.jpeg",
-  },
-];
+import { useCart } from "@/lib/cart-context";
 
 export default function CartPage() {
-  const [items, setItems] = useState<CartItemData[]>(initialItems);
-
-  function handleQuantityChange(id: string, quantity: number) {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
-  }
-
-  function handleRemove(id: string) {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  }
-
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const { items, updateQuantity, removeItem, subtotal } = useCart();
 
   return (
     <main className="bg-[#FAF7F2] px-6 py-16">
@@ -53,8 +32,8 @@ export default function CartPage() {
                 <CartItem
                   key={item.id}
                   item={item}
-                  onQuantityChange={handleQuantityChange}
-                  onRemove={handleRemove}
+                  onQuantityChange={updateQuantity}
+                  onRemove={removeItem}
                 />
               ))}
             </div>

@@ -1,6 +1,9 @@
 import ProductGrid from "@/components/shop/ProductGrid";
+import { getAllProducts } from "@/lib/db-products";
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const products = await getAllProducts();
+
   return (
     <main className="bg-[#FAF7F2] px-6 py-12">
       <div className="mx-auto max-w-7xl">
@@ -16,7 +19,7 @@ export default function ShopPage() {
           </p>
         </div>
 
-        <ProductGrid />
+        <ProductGrid products={products} />
       </div>
     </main>
   );

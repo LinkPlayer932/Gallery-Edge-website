@@ -1,36 +1,32 @@
+
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 
-const playfair = Playfair_Display({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-serif",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
   title: "Gallery Edge | Handcrafted Premium Frames",
-  description:
-    "Gallery-quality custom frames, handcrafted from the world's finest materials.",
+  description: "Gallery-quality custom frames, handcrafted from the world's finest materials.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${playfair.variable} ${inter.variable} font-sans antialiased`}>
-        <Navbar />
+      <body
+        className={`${poppins.variable} font-sans antialiased`}
+        style={
+          {
+            "--font-serif": "var(--font-poppins)",
+            "--font-sans": "var(--font-poppins)",
+          } as React.CSSProperties
+        }
+      >
         {children}
-        <Footer />
       </body>
     </html>
   );

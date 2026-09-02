@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { products } from "@/lib/products";
+import { getProductBySlug, getRelatedProducts } from "@/lib/db-products";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductInfo from "@/components/product/ProductInfo";
 import ProductTabs from "@/components/product/ProductTabs";
@@ -12,9 +12,11 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = products.find((p) => p.slug === slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) notFound();
+
+  const related = await getRelatedProducts(product.categorySlug, product.slug);
 
   return (
     <main className="bg-[#FAF7F2] px-6 py-10">
@@ -28,12 +30,12 @@ export default async function ProductDetailPage({
         </div>
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-          <ProductGallery image={product.image} name={product.name} />
+          <ProductGallery images={product.images} name={product.name} />
           <ProductInfo product={product} />
         </div>
 
         <ProductTabs product={product} />
-        <RelatedProducts current={product} />
+        <RelatedProducts products={related} />
       </div>
     </main>
   );

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Heart, User, ShoppingBag } from "lucide-react";
+import { useCart } from "@/lib/cart-context";
 
 const navLinks = [
   { label: "Shop", href: "/shop" },
@@ -15,6 +16,7 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { itemCount } = useCart();
 
   return (
     <header className="w-full border-b border-neutral-200 bg-[#FAF7F2]">
@@ -69,6 +71,11 @@ export default function Navbar() {
           >
             <ShoppingBag size={16} />
             Cart
+            {itemCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-xs font-semibold">
+                {itemCount}
+              </span>
+            )}
           </Link>
         </div>
       </div>
