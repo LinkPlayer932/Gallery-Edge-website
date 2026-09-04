@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/mongodb";
 import Category from "@/models/Category";
 
@@ -31,6 +32,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
 
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/shop", "page");
+      revalidatePath("/categories", "page");
+    } catch (revalidateError) {
+      console.warn("Revalidation warning:", revalidateError);
+    }
+
     return NextResponse.json({ category });
   } catch (error) {
     console.error("PUT /api/categories/[id] error:", error);
@@ -46,6 +55,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     if (!deleted) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/shop", "page");
+      revalidatePath("/categories", "page");
+    } catch (revalidateError) {
+      console.warn("Revalidation warning:", revalidateError);
     }
 
     return NextResponse.json({ success: true });

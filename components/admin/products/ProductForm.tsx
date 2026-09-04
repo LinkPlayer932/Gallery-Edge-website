@@ -8,6 +8,7 @@ import Input from "@/components/system/Input";
 import Select from "@/components/system/Select";
 import Textarea from "@/components/system/Textarea";
 import Button from "@/components/system/Button";
+import { useToast } from "@/components/system/ToastProvider";
 
 const availableSizes = ["8x10", "11x14", "16x20", "20x24", "24x30"];
 const availableFinishes = ["Natural Walnut", "Dark Walnut", "Natural Oak", "Gallery White", "Aged Bronze", "Ebony"];
@@ -38,6 +39,7 @@ export interface ExistingProduct {
 export default function ProductForm({ product }: { product?: ExistingProduct }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
   const isEdit = !!product;
 
   const [name, setName] = useState(product?.name ?? "");
@@ -166,14 +168,17 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
 
       if (!res.ok) {
         setError(data.error ?? "Something went wrong. Please try again.");
+        showToast(data.error ?? "Failed to save product", "error");
         setSubmitting(false);
         return;
       }
 
+      showToast(isEdit ? "Product updated successfully" : "Product saved successfully");
       router.push("/admin/products");
       router.refresh();
     } catch {
       setError("Could not reach the server. Please try again.");
+      showToast("Could not reach the server. Please try again.", "error");
       setSubmitting(false);
     }
   }

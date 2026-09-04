@@ -8,6 +8,9 @@ import TestimonialsSection from "@/components/home/TestimonialsSection";
 import InstagramStrip from "@/components/home/InstagramStrip";
 // import NewsletterSection from "@/components/shared/NewsletterSection";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function HomePage() {
   return (
     <main>

@@ -84,7 +84,7 @@ export default function CategoriesTable() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Link href={`/admin/categories/edit/${cat._id}`}>
+              <Link href={`/admin/categories/${cat._id}/edit`}>
                 <Button variant="outline" size="sm">
                   Edit
                 </Button>

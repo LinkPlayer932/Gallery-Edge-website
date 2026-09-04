@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import FiltersSidebar from "./FiltersSidebar";
 import SortDropdown, { SortOption } from "./SortDropdown";
@@ -9,11 +10,33 @@ import type { Product } from "@/lib/products";
 
 const PAGE_SIZE = 8;
 
-export default function ProductGrid({ products }: { products: Product[] }) {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState(500);
+interface CategoryItem {
+  name: string;
+  slug: string;
+}
+
+interface ProductGridProps {
+  products: Product[];
+  categories?: CategoryItem[];
+}
+
+export default function ProductGrid({ products, categories = [] }: ProductGridProps) {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categoryParam ? [categoryParam] : []
+  );
+  const [maxPrice, setMaxPrice] = useState(1000);
   const [sort, setSort] = useState<SortOption>("featured");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategories([categoryParam]);
+      setPage(1);
+    }
+  }, [categoryParam]);
 
   function toggleCategory(slug: string) {
     setPage(1);
@@ -24,14 +47,23 @@ export default function ProductGrid({ products }: { products: Product[] }) {
 
   function clearAll() {
     setSelectedCategories([]);
-    setMaxPrice(500);
+    setMaxPrice(1000);
     setPage(1);
   }
 
   const filtered = useMemo(() => {
     let result = products.filter((p) => p.price <= maxPrice);
     if (selectedCategories.length > 0) {
-      result = result.filter((p) => selectedCategories.includes(p.categorySlug));
+      const selectedLower = selectedCategories.map((s) => s.toLowerCase().trim());
+      result = result.filter((p) => {
+        const catSlug = (p.categorySlug || "").toLowerCase().trim();
+        const catName = (p.category || "").toLowerCase().trim();
+        return (
+          selectedLower.includes(catSlug) ||
+          selectedLower.includes(catName) ||
+          selectedLower.includes(catName.replace(/[^a-z0-9]+/g, "-"))
+        );
+      });
     }
     switch (sort) {
       case "price-asc":
@@ -53,6 +85,7 @@ export default function ProductGrid({ products }: { products: Product[] }) {
   return (
     <div className="flex flex-col gap-8 md:flex-row">
       <FiltersSidebar
+        categories={categories}
         selectedCategories={selectedCategories}
         onCategoryToggle={toggleCategory}
         maxPrice={maxPrice}

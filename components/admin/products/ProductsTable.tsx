@@ -100,7 +100,7 @@ export default function ProductsTable() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-3 text-neutral-500">
-                    <Link href={`/admin/products/edit/${product._id}`} aria-label="Edit product" className="hover:text-amber-700">
+                    <Link href={`/admin/products/${product._id}/edit`} aria-label="Edit product" className="hover:text-amber-700">
                       <Pencil size={16} />
                     </Link>
                     <button

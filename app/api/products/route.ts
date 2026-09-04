@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 
@@ -33,10 +34,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let baseSlug = slugify(body.name);
+    let slug = baseSlug;
+    let count = 1;
+    while (await Product.findOne({ slug })) {
+      slug = `${baseSlug}-${count}`;
+      count++;
+    }
+
     const product = await Product.create({
       ...body,
-      slug: slugify(body.name),
+      slug,
     });
+
+    // Revalidate frontend pages
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/shop", "page");
+      revalidatePath("/categories", "page");
+      revalidatePath(`/shop/${slug}`, "page");
+    } catch (revalidateError) {
+      console.warn("Revalidation warning:", revalidateError);
+    }
 
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {

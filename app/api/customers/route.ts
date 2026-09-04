@@ -1,51 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Customer from "@/models/Customer";
 
 export async function GET() {
   try {
     await connectDB();
-    const customers = await Customer.find().sort({ createdAt: -1 });
-    return NextResponse.json({ customers });
-  } catch (err) {
-    console.error("GET /api/customers error:", err);
-    return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 });
-  }
-}
 
-export async function POST(req: NextRequest) {
-  try {
-    await connectDB();
-    const body = await req.json();
-    const { name, email, phone } = body;
+    const customers = await Customer.find().sort({ createdAt: -1 }).lean();
 
-    if (!name || !email) {
-      return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
-    }
+    const formatted = customers.map((c: any) => ({
+      _id: c._id.toString(),
+      name: c.name,
+      email: c.email,
+      phone: c.phone || "",
+      orders: c.totalOrders || 0,
+      spent: `Rs. ${(c.totalSpent || 0).toLocaleString()}`,
+      joined: new Date(c.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    }));
 
-    // Reuse the existing customer record for repeat orders from the same email,
-    // instead of creating a duplicate customer each time.
-    const existing = await Customer.findOne({ email: email.toLowerCase().trim() });
-
-    if (existing) {
-      // Keep contact details up to date in case the customer's info changed
-      existing.name = name;
-      if (phone) existing.phone = phone;
-      await existing.save();
-      return NextResponse.json({ customer: existing }, { status: 200 });
-    }
-
-    const customer = await Customer.create({
-      name,
-      email: email.toLowerCase().trim(),
-      phone: phone ?? "",
-      totalOrders: 0,
-      totalSpent: 0,
-    });
-
-    return NextResponse.json({ customer }, { status: 201 });
-  } catch (err) {
-    console.error("POST /api/customers error:", err);
-    return NextResponse.json({ error: "Failed to save customer" }, { status: 500 });
+    return NextResponse.json({ customers: formatted }, { status: 200 });
+  } catch (error) {
+    console.error("GET /api/customers error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch customers" },
+      { status: 500 }
+    );
   }
 }

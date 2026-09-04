@@ -48,8 +48,8 @@ export default function CartItem({ item, onQuantityChange, onRemove }: CartItemP
         </button>
       </div>
 
-      <p className="w-20 text-right font-serif text-sm font-semibold text-neutral-900">
-        ${item.price * item.quantity}
+      <p className="w-24 text-right font-serif text-sm font-semibold text-neutral-900">
+        Rs. {(item.price * item.quantity).toLocaleString()}
       </p>
 
       <button

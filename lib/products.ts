@@ -220,12 +220,28 @@ export const products: Product[] = [
     sizes: ["16x20", "18x24"],
     finishes: ["Natural Walnut"],
   },
+  {
+    slug: "majestic-stag-portrait-frame",
+    name: "Majestic Stag Wildlife Frame",
+    category: "Animal Photo Frames",
+    categorySlug: "animal-photo",
+    image: "/category-images/animal-photo/animal-photo-1.jpeg",
+    badge: "Bestseller",
+    rating: 4.9,
+    reviews: 41,
+    price: 189,
+    compareAtPrice: 220,
+    description:
+      "A gallery-grade monochrome wildlife portrait of a noble stag, framed in natural solid oak wood with museum-quality glass.",
+    sizes: ["16x20", "18x24", "24x36"],
+    finishes: ["Natural Oak", "Natural Walnut", "Black"],
+  },
 ];
 
 export const categories = [
   { name: "Islamic Calligraphy", count: "20 styles", image: "/category-images/islamic-calligraphy/islamic-calligraphy-1.jpeg", slug: "islamic-calligraphy" },
   { name: "Birthday & Wedding Gift Frames", count: "16 styles", image: "/category-images/birthday-wedding-gift/wedding-gift-1.jpeg", slug: "birthday-wedding-gift" },
-  { name: "Animal Photo Frames", count: "14 styles", image: "https://picsum.photos/seed/animalframe/700/500", slug: "animal-photo" },
+  { name: "Animal Photo Frames", count: "14 styles", image: "/category-images/animal-photo/animal-photo-1.jpeg", slug: "animal-photo" },
   { name: "Car Frames", count: "10 styles", image: "/category-images/car-frames/car-frames-1.jpeg", slug: "car-frames" },
   { name: "Single Frames", count: "18 styles", image: "/category-images/single-frames/single-frame-1.jpeg", slug: "single-frames" },
   { name: "Bestselling Frames", count: "22 styles", image: "/category-images/bestselling/bestselling-1.jpeg", slug: "bestselling" },

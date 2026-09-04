@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/mongodb";
 import Category from "@/models/Category";
 
@@ -13,7 +14,7 @@ function slugify(value: string) {
 export async function GET() {
   try {
     await connectDB();
-    const categories = await Category.find().sort({ order: 1 });
+    const categories = await Category.find().sort({ featured: -1, order: 1, createdAt: -1 });
     return NextResponse.json({ categories });
   } catch (error) {
     console.error("GET /api/categories error:", error);
@@ -26,14 +27,31 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const body = await request.json();
 
-    if (!body.name || !body.image) {
-      return NextResponse.json({ error: "Name and image are required" }, { status: 400 });
+    if (!body.name) {
+      return NextResponse.json({ error: "Category name is required" }, { status: 400 });
+    }
+
+    let baseSlug = body.slug ? slugify(body.slug) : slugify(body.name);
+    let slug = baseSlug;
+    let count = 1;
+    while (await Category.findOne({ slug })) {
+      slug = `${baseSlug}-${count}`;
+      count++;
     }
 
     const category = await Category.create({
       ...body,
-      slug: body.slug ? slugify(body.slug) : slugify(body.name),
+      image: body.image || "/category-images/islamic-calligraphy/islamic-calligraphy-1.jpeg",
+      slug,
     });
+
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/shop", "page");
+      revalidatePath("/categories", "page");
+    } catch (revalidateError) {
+      console.warn("Revalidation warning:", revalidateError);
+    }
 
     return NextResponse.json({ category }, { status: 201 });
   } catch (error) {

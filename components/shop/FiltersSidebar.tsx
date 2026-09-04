@@ -2,9 +2,13 @@
 
 import Checkbox from "@/components/system/Checkbox";
 import Button from "@/components/system/Button";
-import { categories } from "@/lib/products";
+interface CategoryItem {
+  name: string;
+  slug: string;
+}
 
 interface FiltersSidebarProps {
+  categories?: CategoryItem[];
   selectedCategories: string[];
   onCategoryToggle: (slug: string) => void;
   maxPrice: number;
@@ -13,6 +17,7 @@ interface FiltersSidebarProps {
 }
 
 export default function FiltersSidebar({
+  categories = [],
   selectedCategories,
   onCategoryToggle,
   maxPrice,
@@ -46,14 +51,15 @@ export default function FiltersSidebar({
         </p>
         <input
           type="range"
-          min={50}
-          max={500}
+          min={0}
+          max={1000}
+          step={5}
           value={maxPrice}
           onChange={(e) => onMaxPriceChange(Number(e.target.value))}
           className="mt-3 w-full accent-amber-700"
         />
         <div className="mt-1 flex justify-between text-xs text-neutral-500">
-          <span>$50</span>
+          <span>$0</span>
           <span>up to ${maxPrice}</span>
         </div>
       </div>

@@ -1,8 +1,14 @@
 import ProductGrid from "@/components/shop/ProductGrid";
-import { getAllProducts } from "@/lib/db-products";
+import { getAllProducts, getAllCategories } from "@/lib/db-products";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ShopPage() {
-  const products = await getAllProducts();
+  const [products, categories] = await Promise.all([
+    getAllProducts(),
+    getAllCategories(),
+  ]);
 
   return (
     <main className="bg-[#FAF7F2] px-6 py-12">
@@ -19,7 +25,7 @@ export default async function ShopPage() {
           </p>
         </div>
 
-        <ProductGrid products={products} />
+        <ProductGrid products={products} categories={categories} />
       </div>
     </main>
   );

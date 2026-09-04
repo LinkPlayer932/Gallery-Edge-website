@@ -6,8 +6,8 @@ interface CartSummaryProps {
   shippingThreshold?: number;
 }
 
-export default function CartSummary({ subtotal, shippingThreshold = 150 }: CartSummaryProps) {
-  const shipping = subtotal >= shippingThreshold ? 0 : 15;
+export default function CartSummary({ subtotal, shippingThreshold = 4999 }: CartSummaryProps) {
+  const shipping = subtotal >= shippingThreshold ? 0 : 250;
   const total = subtotal + shipping;
 
   return (
@@ -17,17 +17,17 @@ export default function CartSummary({ subtotal, shippingThreshold = 150 }: CartS
       <div className="mt-4 flex flex-col gap-2 text-sm">
         <div className="flex justify-between text-neutral-600">
           <span>Subtotal</span>
-          <span>${subtotal}</span>
+          <span>Rs. {subtotal.toLocaleString()}</span>
         </div>
         <div className="flex justify-between text-neutral-600">
           <span>Shipping</span>
-          <span>{shipping === 0 ? "Free" : `$${shipping}`}</span>
+          <span>{shipping === 0 ? "Free" : `Rs. ${shipping.toLocaleString()}`}</span>
         </div>
       </div>
 
       <div className="mt-4 flex justify-between border-t border-neutral-300 pt-4">
         <span className="font-serif font-semibold text-neutral-900">Total</span>
-        <span className="font-serif text-lg font-semibold text-neutral-900">${total}</span>
+        <span className="font-serif text-lg font-semibold text-neutral-900">Rs. {total.toLocaleString()}</span>
       </div>
 
       <Link href="/checkout">

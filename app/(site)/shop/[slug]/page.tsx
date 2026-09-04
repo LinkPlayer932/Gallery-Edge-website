@@ -6,6 +6,9 @@ import ProductInfo from "@/components/product/ProductInfo";
 import ProductTabs from "@/components/product/ProductTabs";
 import RelatedProducts from "@/components/product/RelatedProducts";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ProductDetailPage({
   params,
 }: {

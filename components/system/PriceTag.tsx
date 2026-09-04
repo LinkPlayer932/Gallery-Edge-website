@@ -18,11 +18,11 @@ export default function PriceTag({ price, compareAtPrice, size = "md" }: PriceTa
   return (
     <div className="flex items-center gap-2.5">
       <span className={`font-serif font-semibold text-neutral-900 ${sizeStyles[size]}`}>
-        ${price}
+        Rs. {price?.toLocaleString()}
       </span>
       {compareAtPrice && (
         <span className="text-sm text-neutral-400 line-through">
-          ${compareAtPrice}
+          Rs. {compareAtPrice?.toLocaleString()}
         </span>
       )}
       {discountPercent !== null && discountPercent > 0 && (
