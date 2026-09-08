@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import Button from "@/components/system/Button";
+import ConfirmDialog from "@/components/system/ConfirmDialog";
+import { useToast } from "@/components/system/ToastProvider";
 
 interface Product {
   _id: string;
@@ -15,12 +17,16 @@ interface Product {
   rating: number;
   reviews: number;
   images: string[];
+  sizes?: string[];
+  finishes?: string[];
 }
 
 export default function ProductsTable() {
+  const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -39,19 +45,50 @@ export default function ProductsTable() {
     }
   }
 
-  async function handleDelete(id: string) {
-    const confirmed = window.confirm("Delete this product? This can't be undone.");
-    if (!confirmed) return;
+  async function handleDelete() {
+    if (!confirmTarget) return;
+    const id = confirmTarget._id;
 
     setDeletingId(id);
     try {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p._id !== id));
+        showToast("Product deleted successfully");
+      } else {
+        showToast("Failed to delete product", "error");
       }
+    } catch {
+      showToast("Could not reach the server", "error");
     } finally {
       setDeletingId(null);
+      setConfirmTarget(null);
     }
+  }
+
+  function renderTags(items?: string[]) {
+    if (!items || items.length === 0) return <span className="text-neutral-400">—</span>;
+
+    const visible = items.slice(0, 2);
+    const remaining = items.length - visible.length;
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {visible.map((item) => (
+          <span
+            key={item}
+            className="rounded-full bg-[#F3EFE7] px-2 py-0.5 text-xs font-medium text-neutral-700"
+          >
+            {item}
+          </span>
+        ))}
+        {remaining > 0 && (
+          <span className="rounded-full bg-[#F3EFE7] px-2 py-0.5 text-xs font-medium text-neutral-500">
+            +{remaining}
+          </span>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -68,12 +105,14 @@ export default function ProductsTable() {
       </div>
 
       <div className="mt-5 overflow-x-auto rounded-xl bg-white">
-        <table className="w-full min-w-[800px] text-left text-sm">
+        <table className="w-full min-w-[1000px] text-left text-sm">
           <thead>
             <tr className="border-b border-neutral-100 bg-[#F3EFE7]/60 text-xs uppercase tracking-wider text-neutral-500">
               <th className="px-6 py-3 font-medium">Product</th>
               <th className="px-6 py-3 font-medium">Category</th>
               <th className="px-6 py-3 font-medium">Price</th>
+              <th className="px-6 py-3 font-medium">Sizes</th>
+              <th className="px-6 py-3 font-medium">Colors</th>
               <th className="px-6 py-3 font-medium">Badge</th>
               <th className="px-6 py-3 font-medium">Rating</th>
               <th className="px-6 py-3 font-medium">Actions</th>
@@ -94,6 +133,8 @@ export default function ProductsTable() {
                 </td>
                 <td className="px-6 py-4 text-neutral-600">{product.category}</td>
                 <td className="px-6 py-4 font-medium text-neutral-900">${product.price}</td>
+                <td className="px-6 py-4">{renderTags(product.sizes)}</td>
+                <td className="px-6 py-4">{renderTags(product.finishes)}</td>
                 <td className="px-6 py-4 text-neutral-600">{product.badge && product.badge !== "None" ? product.badge : "—"}</td>
                 <td className="px-6 py-4 text-neutral-600">
                   {product.rating} ({product.reviews})
@@ -105,7 +146,7 @@ export default function ProductsTable() {
                     </Link>
                     <button
                       aria-label="Delete product"
-                      onClick={() => handleDelete(product._id)}
+                      onClick={() => setConfirmTarget(product)}
                       disabled={deletingId === product._id}
                       className="hover:text-red-600 disabled:opacity-40"
                     >
@@ -124,6 +165,19 @@ export default function ProductsTable() {
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        title="Delete this product?"
+        message={
+          confirmTarget
+            ? `"${confirmTarget.name}" will be permanently removed. This can't be undone.`
+            : ""
+        }
+        loading={deletingId === confirmTarget?._id}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

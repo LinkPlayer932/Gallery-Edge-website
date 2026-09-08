@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { GripVertical, Plus } from "lucide-react";
 import Button from "@/components/system/Button";
+import ConfirmDialog from "@/components/system/ConfirmDialog";
+import { useToast } from "@/components/system/ToastProvider";
 
 interface Category {
   _id: string;
@@ -16,9 +18,11 @@ interface Category {
 }
 
 export default function CategoriesTable() {
+  const { showToast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<Category | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -37,18 +41,24 @@ export default function CategoriesTable() {
     }
   }
 
-  async function handleDelete(id: string) {
-    const confirmed = window.confirm("Delete this category? This can't be undone.");
-    if (!confirmed) return;
+  async function handleDelete() {
+    if (!confirmTarget) return;
+    const id = confirmTarget._id;
 
     setDeletingId(id);
     try {
       const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
       if (res.ok) {
         setCategories((prev) => prev.filter((c) => c._id !== id));
+        showToast("Category deleted successfully");
+      } else {
+        showToast("Failed to delete category", "error");
       }
+    } catch {
+      showToast("Could not reach the server", "error");
     } finally {
       setDeletingId(null);
+      setConfirmTarget(null);
     }
   }
 
@@ -93,7 +103,7 @@ export default function CategoriesTable() {
                 variant="ghost"
                 size="sm"
                 className="text-red-600 hover:bg-red-50"
-                onClick={() => handleDelete(cat._id)}
+                onClick={() => setConfirmTarget(cat)}
                 disabled={deletingId === cat._id}
               >
                 Delete
@@ -108,6 +118,23 @@ export default function CategoriesTable() {
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        title="Delete this category?"
+        message={
+          confirmTarget
+            ? `"${confirmTarget.name}" will be permanently removed${
+                confirmTarget.productCount > 0
+                  ? `. It currently has ${confirmTarget.productCount} product(s) assigned`
+                  : ""
+              }. This can't be undone.`
+            : ""
+        }
+        loading={deletingId === confirmTarget?._id}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

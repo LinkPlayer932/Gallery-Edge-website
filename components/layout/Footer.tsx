@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FaInstagram, FaTwitter, FaFacebook } from "react-icons/fa";
+import { FaWhatsapp } from "react-icons/fa6";
 
 const footerColumns = [
   {
@@ -95,9 +96,23 @@ export default function Footer() {
             Handcrafted premium frames for art that deserves to be seen.
           </p>
           <div className="mt-4 flex gap-3">
-            <FaInstagram size={18} className="cursor-pointer hover:text-white" />
-            <FaTwitter size={18} className="cursor-pointer hover:text-white" />
-            <FaFacebook size={18} className="cursor-pointer hover:text-white" />
+            <Link
+              href="https://web.facebook.com/profile.php?id=61577284538835"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaFacebook size={18} className="cursor-pointer hover:text-white" />
+            </Link>
+            <Link
+              href="https://www.instagram.com/gallery.edge"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaInstagram size={18} className="cursor-pointer hover:text-white" />
+            </Link>
+            <Link href="https://wa.me/923301711146" target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp size={18} className="cursor-pointer hover:text-white" />
+            </Link>
           </div>
         </div>
 

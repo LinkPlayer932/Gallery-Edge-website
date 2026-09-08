@@ -23,7 +23,7 @@ export default function InstagramStrip() {
               Frames in the Wild
             </h2>
           </div>
-          <Link href="#" className="text-sm font-medium text-neutral-700 hover:text-amber-800">
+          <Link href="https://www.instagram.com/gallery.edge" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-neutral-700 hover:text-amber-800">
             @galleryedge
           </Link>
         </div>

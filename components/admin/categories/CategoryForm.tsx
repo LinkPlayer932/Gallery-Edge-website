@@ -8,6 +8,7 @@ import Input from "@/components/system/Input";
 import Textarea from "@/components/system/Textarea";
 import Button from "@/components/system/Button";
 import Toggle from "@/components/system/Toggle";
+import { useToast } from "@/components/system/ToastProvider";
 
 function slugify(value: string) {
   return value
@@ -33,6 +34,7 @@ export default function CategoryForm({
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
   const isEdit = !!category;
 
   const [name, setName] = useState(category?.name ?? "");
@@ -121,14 +123,17 @@ export default function CategoryForm({
 
       if (!res.ok) {
         setError(data.error ?? "Something went wrong. Please try again.");
+        showToast(data.error ?? "Failed to save category", "error");
         setSubmitting(false);
         return;
       }
 
+      showToast(isEdit ? "Category updated successfully" : "Category saved successfully");
       router.push("/admin/categories");
       router.refresh();
     } catch {
       setError("Could not reach the server. Please try again.");
+      showToast("Could not reach the server. Please try again.", "error");
       setSubmitting(false);
     }
   }

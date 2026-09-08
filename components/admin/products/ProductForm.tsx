@@ -3,17 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ImageIcon, Loader2, X } from "lucide-react";
+import { ArrowLeft, ImageIcon, Loader2, Plus, X } from "lucide-react";
 import Input from "@/components/system/Input";
 import Select from "@/components/system/Select";
 import Textarea from "@/components/system/Textarea";
 import Button from "@/components/system/Button";
+import SizeColorDialog from "@/components/system/SizeColorDialog";
 import { useToast } from "@/components/system/ToastProvider";
 
-const availableSizes = ["8x10", "11x14", "16x20", "20x24", "24x30"];
-const availableFinishes = ["Natural Walnut", "Dark Walnut", "Natural Oak", "Gallery White", "Aged Bronze", "Ebony"];
-
 type UploadedImage = { url: string; publicId: string };
+type OptionItem = { id: string; value: string; isDefault: boolean };
 
 interface CategoryOption {
   _id: string;
@@ -51,8 +50,17 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
     product?.compareAtPrice != null ? String(product.compareAtPrice) : ""
   );
   const [stock, setStock] = useState(product?.stock != null ? String(product.stock) : "");
+
+  // Sizes/finishes ab poori tarah database (Option collection) se aate hain — koi hardcoded default nahi
+  const [sizeOptions, setSizeOptions] = useState<OptionItem[]>([]);
+  const [finishOptions, setFinishOptions] = useState<OptionItem[]>([]);
+
   const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
   const [selectedFinishes, setSelectedFinishes] = useState<string[]>(product?.finishes ?? []);
+
+  // Controls the SizeColorDialog popup
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<"size" | "color">("size");
 
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -83,11 +91,74 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    async function loadOptions() {
+      try {
+        const [sizeRes, colorRes] = await Promise.all([
+          fetch("/api/options?type=size", { cache: "no-store" }),
+          fetch("/api/options?type=color", { cache: "no-store" }),
+        ]);
+        const sizeData = await sizeRes.json();
+        const colorData = await colorRes.json();
+
+        let loadedSizes: OptionItem[] = (sizeData.options || []).map(
+          (o: { _id: string; value: string }) => ({ id: o._id, value: o.value, isDefault: false })
+        );
+        let loadedFinishes: OptionItem[] = (colorData.options || []).map(
+          (o: { _id: string; value: string }) => ({ id: o._id, value: o.value, isDefault: false })
+        );
+
+        // Edit mode: agar product ke apne sizes/finishes kisi wajah se DB list mein na hon, unhe bhi dikha dein
+        if (product?.sizes?.length) {
+          const missing = product.sizes.filter((s) => !loadedSizes.some((o) => o.value === s));
+          loadedSizes = [...loadedSizes, ...missing.map((s) => ({ id: s, value: s, isDefault: false }))];
+        }
+        if (product?.finishes?.length) {
+          const missing = product.finishes.filter((f) => !loadedFinishes.some((o) => o.value === f));
+          loadedFinishes = [...loadedFinishes, ...missing.map((f) => ({ id: f, value: f, isDefault: false }))];
+        }
+
+        setSizeOptions(loadedSizes);
+        setFinishOptions(loadedFinishes);
+      } catch (err) {
+        console.error("Failed to load options:", err);
+      }
+    }
+    loadOptions();
+  }, [product]);
+
   function toggleSize(size: string) {
     setSelectedSizes((prev) => (prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]));
   }
   function toggleFinish(finish: string) {
     setSelectedFinishes((prev) => (prev.includes(finish) ? prev.filter((f) => f !== finish) : [...prev, finish]));
+  }
+
+  function openDialog(type: "size" | "color") {
+    setDialogType(type);
+    setDialogOpen(true);
+  }
+
+  function handleDialogAdded(item: OptionItem) {
+    if (dialogType === "size") {
+      setSizeOptions((prev) => [...prev, item]);
+      setSelectedSizes((prev) => [...prev, item.value]);
+    } else {
+      setFinishOptions((prev) => [...prev, item]);
+      setSelectedFinishes((prev) => [...prev, item.value]);
+    }
+  }
+
+  function handleDialogRemoved(id: string) {
+    if (dialogType === "size") {
+      const removed = sizeOptions.find((o) => o.id === id);
+      setSizeOptions((prev) => prev.filter((o) => o.id !== id));
+      if (removed) setSelectedSizes((prev) => prev.filter((s) => s !== removed.value));
+    } else {
+      const removed = finishOptions.find((o) => o.id === id);
+      setFinishOptions((prev) => prev.filter((o) => o.id !== id));
+      if (removed) setSelectedFinishes((prev) => prev.filter((f) => f !== removed.value));
+    }
   }
 
   async function uploadFiles(files: FileList | File[]) {
@@ -261,40 +332,58 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         </p>
 
         <div className="mt-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">Available Sizes</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">Available Sizes</p>
+            <button
+              type="button"
+              onClick={() => openDialog("size")}
+              className="flex items-center gap-1 text-xs font-medium text-amber-700 hover:underline"
+            >
+              <Plus size={13} /> Add New
+            </button>
+          </div>
           <div className="mt-2 flex flex-wrap gap-2">
-            {availableSizes.map((size) => (
+            {sizeOptions.map((size) => (
               <button
                 type="button"
-                key={size}
-                onClick={() => toggleSize(size)}
+                key={size.id}
+                onClick={() => toggleSize(size.value)}
                 className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-                  selectedSizes.includes(size)
+                  selectedSizes.includes(size.value)
                     ? "border-neutral-900 bg-neutral-900 text-white"
                     : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
                 }`}
               >
-                {size}
+                {size.value}
               </button>
             ))}
           </div>
         </div>
 
         <div className="mt-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">Finish / Color Options</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">Finish / Color Options</p>
+            <button
+              type="button"
+              onClick={() => openDialog("color")}
+              className="flex items-center gap-1 text-xs font-medium text-amber-700 hover:underline"
+            >
+              <Plus size={13} /> Add New
+            </button>
+          </div>
           <div className="mt-2 flex flex-wrap gap-2">
-            {availableFinishes.map((finish) => (
+            {finishOptions.map((finish) => (
               <button
                 type="button"
-                key={finish}
-                onClick={() => toggleFinish(finish)}
+                key={finish.id}
+                onClick={() => toggleFinish(finish.value)}
                 className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-                  selectedFinishes.includes(finish)
+                  selectedFinishes.includes(finish.value)
                     ? "border-neutral-900 bg-neutral-900 text-white"
                     : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
                 }`}
               >
-                {finish}
+                {finish.value}
               </button>
             ))}
           </div>
@@ -393,6 +482,15 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
           </Link>
         </div>
       </form>
+
+      <SizeColorDialog
+        open={dialogOpen}
+        type={dialogType}
+        items={dialogType === "size" ? sizeOptions : finishOptions}
+        onAdded={handleDialogAdded}
+        onRemoved={handleDialogRemoved}
+        onClose={() => setDialogOpen(false)}
+      />
     </div>
   );
 }
