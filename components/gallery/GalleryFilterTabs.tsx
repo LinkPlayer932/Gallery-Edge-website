@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const filters = ["All", "Modern", "Classic", "Contemporary", "Abstract", "Minimalist", "Natural"];
+const filters = ["All", "Modern", "Classic", "Islamic Calligraphy", "Wedding Boards", "Natural"];
 
 interface GalleryFilterTabsProps {
   onFilterChange?: (filter: string) => void;

@@ -10,9 +10,13 @@ export default function ContactForm() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     subject: "",
     message: "",
   });
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -20,11 +24,52 @@ export default function ContactForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // TODO: connect to email/API endpoint
-  }
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  setSubmitting(true);
+  setError("");
 
+  try {
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Something went wrong. Please try again.");
+      setSubmitting(false);
+      return;
+    }
+
+    const subjectLabels: Record<string, string> = {
+      order: "Order Question",
+      custom: "Custom Frame Inquiry",
+      sizing: "Sizing & Care",
+      other: "Other",
+    };
+
+    const message = `*New Contact Message*
+
+*Name:* ${form.name}
+*Phone:* ${form.phone}
+*Email:* ${form.email}
+*Subject:* ${subjectLabels[form.subject] || form.subject}
+*Message:* ${form.message}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappNumber = "923301711146";
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, "_blank");
+
+    // Reset form after successful save + WhatsApp redirect
+    setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+  } catch {
+    setError("Could not reach the server. Please try again.");
+  } finally {
+    setSubmitting(false);
+  }
+}
   return (
     <form onSubmit={handleSubmit} className="rounded-xl bg-white p-8">
       <p className="font-serif text-xl font-semibold text-neutral-900">Send a Message</p>
@@ -46,6 +91,19 @@ export default function ContactForm() {
           type="email"
           placeholder="you@example.com"
           value={form.email}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="mt-5">
+        <Input
+          id="contact-phone"
+          name="phone"
+          label="Phone Number"
+          type="tel"
+          placeholder="e.g. 03XX-XXXXXXX"
+          value={form.phone}
           onChange={handleChange}
           required
         />
@@ -80,8 +138,10 @@ export default function ContactForm() {
         />
       </div>
 
-      <Button type="submit" variant="primary" size="lg" className="mt-6 w-full">
-        Send Message
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+      <Button type="submit" variant="primary" size="lg" className="mt-6 w-full" disabled={submitting}>
+        {submitting ? "Sending..." : "Send Message"}
       </Button>
     </form>
   );

@@ -4,18 +4,6 @@ import { FaWhatsapp } from "react-icons/fa6";
 
 const footerColumns = [
   {
-    title: "Shop",
-    links: [
-      "Wooden Frames",
-      "Metal Frames",
-      "Custom Frames",
-      "Canvas Prints",
-      "Photo Frames",
-      "New Arrivals",
-      "Bestsellers",
-    ],
-  },
-  {
     title: "Services",
     links: [
       "Custom Sizing",
@@ -82,7 +70,7 @@ export default function Footer() {
       </div>
 
       {/* Columns */}
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-10 px-6 py-12 md:grid-cols-5">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-10 px-6 py-12 md:grid-cols-4">
         <div className="col-span-2 md:col-span-1">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-800 text-sm font-semibold text-white">
@@ -93,7 +81,7 @@ export default function Footer() {
             </span>
           </div>
           <p className="mt-3 text-sm text-neutral-400">
-            Handcrafted premium frames for art that deserves to be seen.
+            Handcrafted premium frames for art that deserves to be seen. Every piece is made with care, quality, and attention to detail.
           </p>
           <div className="mt-4 flex gap-3">
             <Link
@@ -117,7 +105,7 @@ export default function Footer() {
         </div>
 
         {footerColumns.map((col) => (
-          <div key={col.title}>
+          <div key={col.title} className="text-center">
             <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
               {col.title}
             </p>
@@ -138,7 +126,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-neutral-800 px-6 py-5 text-xs text-neutral-500 md:flex-row">
         <p>© 2026 Gallery Edge. All rights reserved. Handcrafted with care.</p>
         <div className="flex items-center gap-4">
-          <span>Visa · MC · Amex · PayPal · Apple</span>
+          <span>Visa · MasterCard · JazzCash · Easypaisa · COD</span>
           <Link href="#" className="hover:text-white">Privacy</Link>
           <Link href="#" className="hover:text-white">Terms</Link>
           <Link href="#" className="hover:text-white">Cookies</Link>

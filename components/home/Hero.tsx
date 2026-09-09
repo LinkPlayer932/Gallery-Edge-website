@@ -18,7 +18,7 @@ export default function Hero() {
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-24">
         <div className="max-w-xl">
           <p className="text-xs font-medium uppercase tracking-widest text-amber-500">
-            Handcrafted Since 1987
+            Handcrafted Since 2009
           </p>
           <h1 className="mt-4 font-serif text-5xl font-semibold leading-tight text-white md:text-6xl">
             Where Art Meets its <span className="italic">Perfect Frame.</span>
