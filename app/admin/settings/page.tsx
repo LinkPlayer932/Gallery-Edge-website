@@ -1,4 +1,5 @@
 import AdminTopbar from "@/components/admin/layout/AdminTopbar";
+import AdminProfileCard from "@/components/admin/settings/AdminProfileCard";
 import StoreInfoCard from "@/components/admin/settings/StoreInfoCard";
 import ShippingSettingsCard from "@/components/admin/settings/ShippingSettingsCard";
 import PaymentMethodsCard from "@/components/admin/settings/PaymentMethodsCard";
@@ -10,7 +11,10 @@ export default function AdminSettingsPage() {
     <div>
       <AdminTopbar title="Settings" />
       <div className="mx-auto max-w-3xl px-8 py-6">
-        <StoreInfoCard />
+        <AdminProfileCard />
+        <div className="mt-6">
+          <StoreInfoCard />
+        </div>
         <ShippingSettingsCard />
         <PaymentMethodsCard />
         <TaxSettingsCard />
