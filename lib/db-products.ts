@@ -1,66 +1,9 @@
 import { connectDB } from "@/lib/mongodb";
 import ProductModel from "@/models/Product";
 import CategoryModel from "@/models/Category";
-import { products as defaultProducts, categories as defaultCategories, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
 
 type CategoryNameMap = Record<string, string>;
-
-let hasSeeded = false;
-
-async function ensureDefaultDataSeeded() {
-  if (hasSeeded) return;
-  try {
-    // Seed default categories if they do not exist
-    for (let i = 0; i < defaultCategories.length; i++) {
-      const cat = defaultCategories[i];
-      await CategoryModel.updateOne(
-        { slug: cat.slug },
-        {
-          $setOnInsert: {
-            name: cat.name,
-            slug: cat.slug,
-            featured: i < 5,
-            order: i + 1,
-            productCount: 0,
-          },
-          $set: {
-            image: cat.image,
-          },
-        },
-        { upsert: true }
-      );
-    }
-
-    // Seed default products if they do not exist
-    for (const prod of defaultProducts) {
-      await ProductModel.updateOne(
-        { slug: prod.slug },
-        {
-          $setOnInsert: {
-            name: prod.name,
-            slug: prod.slug,
-            category: prod.categorySlug,
-            description: prod.description,
-            price: prod.price,
-            compareAtPrice: prod.compareAtPrice,
-            stock: 25,
-            badge: prod.badge ?? "None",
-            sizes: prod.sizes,
-            finishes: prod.finishes,
-            images: prod.images?.length ? prod.images : [prod.image],
-            rating: prod.rating,
-            reviews: prod.reviews,
-            status: "Active",
-          },
-        },
-        { upsert: true }
-      );
-    }
-    hasSeeded = true;
-  } catch (err) {
-    console.error("Error auto-seeding defaults:", err);
-  }
-}
 
 async function getCategoryNameMap(): Promise<CategoryNameMap> {
   const categories = await CategoryModel.find();
@@ -97,7 +40,6 @@ function mapProduct(doc: any, categoryNameMap: CategoryNameMap): Product {
 
 export async function getAllProducts(): Promise<Product[]> {
   await connectDB();
-  await ensureDefaultDataSeeded();
   const categoryNameMap = await getCategoryNameMap();
   const docs = await ProductModel.find({ status: { $ne: "Draft" } }).sort({ createdAt: -1 });
   return docs.map((doc) => mapProduct(doc, categoryNameMap));
@@ -105,7 +47,6 @@ export async function getAllProducts(): Promise<Product[]> {
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   await connectDB();
-  await ensureDefaultDataSeeded();
   const categoryNameMap = await getCategoryNameMap();
   const doc = await ProductModel.findOne({ slug, status: { $ne: "Draft" } });
   if (!doc) return null;
@@ -118,7 +59,6 @@ export async function getRelatedProducts(
   limit = 4
 ): Promise<Product[]> {
   await connectDB();
-  await ensureDefaultDataSeeded();
   const categoryNameMap = await getCategoryNameMap();
   const docs = await ProductModel.find({
     category: categorySlug,
@@ -137,7 +77,6 @@ export interface CategoryDisplay {
 
 export async function getAllCategories(): Promise<CategoryDisplay[]> {
   await connectDB();
-  await ensureDefaultDataSeeded();
   const categories = await CategoryModel.find().sort({ featured: -1, order: 1, createdAt: -1 });
 
   const counts = await ProductModel.aggregate([
