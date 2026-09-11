@@ -27,7 +27,7 @@ export default function ProductGrid({ products, categories = [] }: ProductGridPr
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     categoryParam ? [categoryParam] : []
   );
-  const [maxPrice, setMaxPrice] = useState(1000);
+  const [maxPrice, setMaxPrice] = useState(100000);
   const [sort, setSort] = useState<SortOption>("featured");
   const [page, setPage] = useState(1);
 
@@ -47,7 +47,7 @@ export default function ProductGrid({ products, categories = [] }: ProductGridPr
 
   function clearAll() {
     setSelectedCategories([]);
-    setMaxPrice(1000);
+    setMaxPrice(100000);
     setPage(1);
   }
 

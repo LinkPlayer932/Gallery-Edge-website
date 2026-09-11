@@ -52,15 +52,15 @@ export default function FiltersSidebar({
         <input
           type="range"
           min={0}
-          max={1000}
-          step={5}
+          max={100000}
+          step={500}
           value={maxPrice}
           onChange={(e) => onMaxPriceChange(Number(e.target.value))}
           className="mt-3 w-full accent-amber-700"
         />
         <div className="mt-1 flex justify-between text-xs text-neutral-500">
-          <span>$0</span>
-          <span>up to ${maxPrice}</span>
+          <span>Rs. 0</span>
+          <span>up to Rs. {maxPrice.toLocaleString()}</span>
         </div>
       </div>
 
