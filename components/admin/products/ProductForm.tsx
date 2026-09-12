@@ -322,8 +322,8 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         </p>
 
         <div className="mt-4 grid grid-cols-3 gap-4">
-          <Input id="product-price" label="Price" type="number" placeholder="$.00" value={price} onChange={(e) => setPrice(e.target.value)} required />
-          <Input id="product-compare-price" label="Compare-at Price" type="number" placeholder="$.00" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
+          <Input id="product-price" label="Price (PKR)" type="number" placeholder="PKR 0" value={price} onChange={(e) => setPrice(e.target.value)} required />
+          <Input id="product-compare-price" label="Compare-at Price (PKR)" type="number" placeholder="PKR 0" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
           <Input id="product-stock" label="Stock Quantity" type="number" placeholder="0" value={stock} onChange={(e) => setStock(e.target.value)} />
         </div>
 

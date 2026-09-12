@@ -90,7 +90,7 @@ export default function ProductInfo({ product }: { product: Product }) {
 
       <div className="mt-6 grid grid-cols-3 gap-3 text-center text-xs text-neutral-600">
         <div className="rounded-md bg-[#F3EFE7] p-3">Lifetime guarantee</div>
-        <div className="rounded-md bg-[#F3EFE7] p-3">Free shipping $150+</div>
+        <div className="rounded-md bg-[#F3EFE7] p-3">Free delivery Rs. 4,999+</div>
         <div className="rounded-md bg-[#F3EFE7] p-3">30-day returns</div>
       </div>
     </div>

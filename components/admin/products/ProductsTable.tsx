@@ -132,7 +132,9 @@ export default function ProductsTable() {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-neutral-600">{product.category}</td>
-                <td className="px-6 py-4 font-medium text-neutral-900">${product.price}</td>
+                <td className="px-6 py-4 font-medium text-neutral-900">
+                  Rs. {product.price?.toLocaleString()}
+                </td>
                 <td className="px-6 py-4">{renderTags(product.sizes)}</td>
                 <td className="px-6 py-4">{renderTags(product.finishes)}</td>
                 <td className="px-6 py-4 text-neutral-600">{product.badge && product.badge !== "None" ? product.badge : "—"}</td>

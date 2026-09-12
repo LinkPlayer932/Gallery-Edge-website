@@ -30,7 +30,7 @@ export default function CheckoutSummary({ items, subtotal, shippingMethod }: Che
               <p className="text-xs text-neutral-500">{item.variant}</p>
             </div>
             <p className="whitespace-nowrap text-sm font-semibold text-neutral-900">
-              ${item.price * item.quantity}
+              Rs. {(item.price * item.quantity).toLocaleString()}
             </p>
           </div>
         ))}
@@ -39,17 +39,21 @@ export default function CheckoutSummary({ items, subtotal, shippingMethod }: Che
       <div className="mt-5 flex flex-col gap-2 border-t border-neutral-100 pt-4 text-sm">
         <div className="flex justify-between text-neutral-600">
           <span>Subtotal</span>
-          <span>${subtotal}</span>
+          <span>Rs. {subtotal.toLocaleString()}</span>
         </div>
         <div className="flex justify-between text-neutral-600">
           <span>Shipping</span>
-          <span className={shipping === 0 ? "text-green-700" : ""}>{shipping === 0 ? "Free" : `$${shipping}`}</span>
+          <span className={shipping === 0 ? "text-green-700" : ""}>
+            {shipping === 0 ? "Free" : `Rs. ${shipping.toLocaleString()}`}
+          </span>
         </div>
       </div>
 
       <div className="mt-4 flex justify-between border-t border-neutral-200 pt-4">
         <span className="font-serif font-semibold text-neutral-900">Total</span>
-        <span className="font-serif text-lg font-semibold text-neutral-900">${total}</span>
+        <span className="font-serif text-lg font-semibold text-neutral-900">
+          Rs. {total.toLocaleString()}
+        </span>
       </div>
     </div>
   );

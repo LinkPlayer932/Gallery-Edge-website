@@ -243,7 +243,7 @@ export default function CheckoutPage() {
                           <span className="text-sm text-neutral-800">{option.label}</span>
                         </span>
                         <span className="text-sm font-medium text-neutral-900">
-                          {option.price === 0 ? "Free" : `$${option.price}`}
+                          {option.price === 0 ? "Free" : `Rs. ${option.price.toLocaleString()}`}
                         </span>
                       </label>
                     ))}
