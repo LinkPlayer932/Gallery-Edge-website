@@ -16,18 +16,31 @@ export default function ProductInfo({ product }: { product: Product }) {
   const router = useRouter();
   const { addItem } = useCart();
 
-  const [size, setSize] = useState(product.sizes[0]);
-  const [finish, setFinish] = useState(product.finishes[0]);
+  const initialSize = product.sizes?.[0] || product.sizeVariants?.[0]?.size || "";
+  const [size, setSize] = useState(initialSize);
+  const [finish, setFinish] = useState(product.finishes?.[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
+  // Find active variant pricing for selected size
+  const activeVariant = product.sizeVariants?.find((v) => v.size === size);
+  const currentPrice = activeVariant ? activeVariant.price : product.price;
+  const currentCompareAtPrice =
+    activeVariant?.compareAtPrice != null
+      ? activeVariant.compareAtPrice
+      : activeVariant
+      ? undefined
+      : product.compareAtPrice;
+
   function buildCartItem() {
     const variantParts = [size, finish].filter(Boolean);
+    const variantStr = variantParts.join(" · ");
+    const uniqueId = `${product._id ?? product.slug}${size ? `-${size}` : ""}${finish ? `-${finish}` : ""}`;
     return {
-      id: product._id ?? product.slug,
+      id: uniqueId,
       name: product.name,
-      variant: variantParts.join(" · "),
-      price: product.price,
+      variant: variantStr,
+      price: currentPrice,
       image: product.image,
     };
   }
@@ -57,17 +70,27 @@ export default function ProductInfo({ product }: { product: Product }) {
       </h1>
 
       <div className="mt-2">
-        <RatingStars rating={product.rating} reviewCount={product.reviews} size={16} />
+        <a
+          href="#reviews"
+          className="inline-block transition-opacity hover:opacity-80 focus:outline-none"
+        >
+          <RatingStars rating={product.rating} reviewCount={product.reviews} size={16} />
+        </a>
       </div>
 
       <div className="mt-4">
-        <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
+        <PriceTag price={currentPrice} compareAtPrice={currentCompareAtPrice} size="lg" />
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-neutral-600">{product.description}</p>
 
       <div className="mt-6 flex flex-col gap-5">
-        <SizeSelector sizes={product.sizes} selected={size} onSelect={setSize} />
+        <SizeSelector
+          sizes={product.sizes}
+          sizeVariants={product.sizeVariants}
+          selected={size}
+          onSelect={setSize}
+        />
         <FinishSelector finishes={product.finishes} selected={finish} onSelect={setFinish} />
       </div>
 

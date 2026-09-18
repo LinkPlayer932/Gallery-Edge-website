@@ -1,5 +1,11 @@
 import { Schema, models, model } from "mongoose";
 
+export interface ISizeVariant {
+  size: string;
+  price: number;
+  compareAtPrice?: number;
+}
+
 export interface IProduct {
   name: string;
   slug: string;
@@ -10,12 +16,22 @@ export interface IProduct {
   stock: number;
   badge?: "Bestseller" | "New" | "None";
   sizes: string[];
+  sizeVariants?: ISizeVariant[];
   finishes: string[];
   images: string[];
   rating: number;
   reviews: number;
   status: "Active" | "Draft";
 }
+
+const SizeVariantSchema = new Schema<ISizeVariant>(
+  {
+    size: { type: String, required: true },
+    price: { type: Number, required: true },
+    compareAtPrice: { type: Number },
+  },
+  { _id: false }
+);
 
 const ProductSchema = new Schema<IProduct>(
   {
@@ -28,6 +44,7 @@ const ProductSchema = new Schema<IProduct>(
     stock: { type: Number, default: 0 },
     badge: { type: String, enum: ["Bestseller", "New", "None"], default: "None" },
     sizes: { type: [String], default: [] },
+    sizeVariants: { type: [SizeVariantSchema], default: [] },
     finishes: { type: [String], default: [] },
     images: { type: [String], default: [] },
     rating: { type: Number, default: 0 },

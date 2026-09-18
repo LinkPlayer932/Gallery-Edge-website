@@ -4,6 +4,7 @@ import { getProductBySlug, getRelatedProducts } from "@/lib/db-products";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductInfo from "@/components/product/ProductInfo";
 import ProductTabs from "@/components/product/ProductTabs";
+import ProductReviews from "@/components/product/ProductReviews";
 import RelatedProducts from "@/components/product/RelatedProducts";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,11 @@ export default async function ProductDetailPage({
         </div>
 
         <ProductTabs product={product} />
+        <ProductReviews
+          productId={product._id}
+          productSlug={product.slug}
+          productName={product.name}
+        />
         <RelatedProducts products={related} />
       </div>
     </main>

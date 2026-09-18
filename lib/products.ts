@@ -1,3 +1,9 @@
+export interface SizeVariant {
+  size: string;
+  price: number;
+  compareAtPrice?: number;
+}
+
 export interface Product {
   _id?: string;
   slug: string;
@@ -13,5 +19,6 @@ export interface Product {
   compareAtPrice?: number;
   description: string;
   sizes: string[];
+  sizeVariants?: SizeVariant[];
   finishes: string[];
 }

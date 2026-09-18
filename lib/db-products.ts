@@ -19,6 +19,20 @@ async function getCategoryNameMap(): Promise<CategoryNameMap> {
 function mapProduct(doc: any, categoryNameMap: CategoryNameMap): Product {
   const images: string[] = doc.images?.length ? doc.images : ["/product-images/placeholder.jpg"];
 
+  const sizeVariants = doc.sizeVariants?.length
+    ? doc.sizeVariants.map((sv: any) => ({
+        size: sv.size,
+        price: Number(sv.price),
+        compareAtPrice: sv.compareAtPrice != null ? Number(sv.compareAtPrice) : undefined,
+      }))
+    : undefined;
+
+  const sizes = doc.sizes?.length
+    ? doc.sizes
+    : sizeVariants?.length
+    ? sizeVariants.map((sv: any) => sv.size)
+    : [];
+
   return {
     _id: doc._id.toString(),
     slug: doc.slug,
@@ -33,7 +47,8 @@ function mapProduct(doc: any, categoryNameMap: CategoryNameMap): Product {
     price: doc.price,
     compareAtPrice: doc.compareAtPrice,
     description: doc.description ?? "",
-    sizes: doc.sizes ?? [],
+    sizes,
+    sizeVariants,
     finishes: doc.finishes ?? [],
   };
 }

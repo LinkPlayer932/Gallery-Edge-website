@@ -30,10 +30,17 @@ export interface ExistingProduct {
   compareAtPrice?: number;
   stock: number;
   sizes: string[];
+  sizeVariants?: { size: string; price: number; compareAtPrice?: number }[];
   finishes: string[];
   images: string[];
   status: "Active" | "Draft";
 }
+
+type SizeVariantState = {
+  size: string;
+  price: string;
+  compareAtPrice: string;
+};
 
 export default function ProductForm({ product }: { product?: ExistingProduct }) {
   const router = useRouter();
@@ -55,7 +62,24 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
   const [sizeOptions, setSizeOptions] = useState<OptionItem[]>([]);
   const [finishOptions, setFinishOptions] = useState<OptionItem[]>([]);
 
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
+  const [sizeVariants, setSizeVariants] = useState<SizeVariantState[]>(() => {
+    if (product?.sizeVariants?.length) {
+      return product.sizeVariants.map((sv) => ({
+        size: sv.size,
+        price: sv.price != null ? String(sv.price) : "",
+        compareAtPrice: sv.compareAtPrice != null ? String(sv.compareAtPrice) : "",
+      }));
+    }
+    if (product?.sizes?.length) {
+      return product.sizes.map((s) => ({
+        size: s,
+        price: product.price != null ? String(product.price) : "",
+        compareAtPrice: product.compareAtPrice != null ? String(product.compareAtPrice) : "",
+      }));
+    }
+    return [];
+  });
+
   const [selectedFinishes, setSelectedFinishes] = useState<string[]>(product?.finishes ?? []);
 
   // Controls the SizeColorDialog popup
@@ -109,8 +133,9 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         );
 
         // Edit mode: agar product ke apne sizes/finishes kisi wajah se DB list mein na hon, unhe bhi dikha dein
-        if (product?.sizes?.length) {
-          const missing = product.sizes.filter((s) => !loadedSizes.some((o) => o.value === s));
+        const existingSizes = product?.sizeVariants?.map((v) => v.size) || product?.sizes || [];
+        if (existingSizes.length) {
+          const missing = existingSizes.filter((s) => !loadedSizes.some((o) => o.value === s));
           loadedSizes = [...loadedSizes, ...missing.map((s) => ({ id: s, value: s, isDefault: false }))];
         }
         if (product?.finishes?.length) {
@@ -128,8 +153,29 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
   }, [product]);
 
   function toggleSize(size: string) {
-    setSelectedSizes((prev) => (prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]));
+    setSizeVariants((prev) => {
+      const exists = prev.some((v) => v.size === size);
+      if (exists) {
+        return prev.filter((v) => v.size !== size);
+      } else {
+        return [
+          ...prev,
+          {
+            size,
+            price: price || (prev[0]?.price ?? ""),
+            compareAtPrice: compareAtPrice || (prev[0]?.compareAtPrice ?? ""),
+          },
+        ];
+      }
+    });
   }
+
+  function updateSizeVariantPrice(size: string, field: "price" | "compareAtPrice", val: string) {
+    setSizeVariants((prev) =>
+      prev.map((v) => (v.size === size ? { ...v, [field]: val } : v))
+    );
+  }
+
   function toggleFinish(finish: string) {
     setSelectedFinishes((prev) => (prev.includes(finish) ? prev.filter((f) => f !== finish) : [...prev, finish]));
   }
@@ -142,7 +188,17 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
   function handleDialogAdded(item: OptionItem) {
     if (dialogType === "size") {
       setSizeOptions((prev) => [...prev, item]);
-      setSelectedSizes((prev) => [...prev, item.value]);
+      setSizeVariants((prev) => {
+        if (prev.some((v) => v.size === item.value)) return prev;
+        return [
+          ...prev,
+          {
+            size: item.value,
+            price: price || (prev[0]?.price ?? ""),
+            compareAtPrice: compareAtPrice || (prev[0]?.compareAtPrice ?? ""),
+          },
+        ];
+      });
     } else {
       setFinishOptions((prev) => [...prev, item]);
       setSelectedFinishes((prev) => [...prev, item.value]);
@@ -153,11 +209,11 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
     if (dialogType === "size") {
       const removed = sizeOptions.find((o) => o.id === id);
       setSizeOptions((prev) => prev.filter((o) => o.id !== id));
-      if (removed) setSelectedSizes((prev) => prev.filter((s) => s !== removed.value));
+      if (removed) setSizeVariants((prev) => prev.filter((v) => v.size !== removed.value));
     } else {
       const removed = finishOptions.find((o) => o.id === id);
       setFinishOptions((prev) => prev.filter((o) => o.id !== id));
-      if (removed) setSelectedFinishes((prev) => prev.filter((f) => f !== removed.value));
+      if (removed) setSelectedFinishes((prev) => prev.filter((s) => s !== removed.value));
     }
   }
 
@@ -211,6 +267,30 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
       return;
     }
 
+    const formattedVariants = sizeVariants
+      .filter((v) => v.size.trim())
+      .map((v) => ({
+        size: v.size.trim(),
+        price: Number(v.price) || 0,
+        compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
+      }));
+
+    // If size variants exist, validate prices
+    for (const variant of formattedVariants) {
+      if (variant.price <= 0) {
+        setError(`Please enter a valid price for size "${variant.size}".`);
+        return;
+      }
+    }
+
+    const basePrice = Number(price) || (formattedVariants[0]?.price ?? 0);
+    const baseComparePrice = compareAtPrice ? Number(compareAtPrice) : formattedVariants[0]?.compareAtPrice;
+
+    if (!basePrice && formattedVariants.length === 0) {
+      setError("Please specify a base price or at least one size variant with price.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -225,10 +305,11 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
           category,
           badge,
           description,
-          price: Number(price),
-          compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
+          price: basePrice,
+          compareAtPrice: baseComparePrice,
           stock: Number(stock) || 0,
-          sizes: selectedSizes,
+          sizes: formattedVariants.map((v) => v.size),
+          sizeVariants: formattedVariants,
           finishes: selectedFinishes,
           images: images.map((img) => img.url),
           status,
@@ -318,17 +399,32 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         </div>
 
         <p className="mt-8 border-b border-neutral-100 pb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-          Pricing &amp; Inventory
+          Base Pricing &amp; Inventory
         </p>
 
         <div className="mt-4 grid grid-cols-3 gap-4">
-          <Input id="product-price" label="Price (PKR)" type="number" placeholder="PKR 0" value={price} onChange={(e) => setPrice(e.target.value)} required />
+          <Input
+            id="product-price"
+            label="Base Price (PKR)"
+            type="number"
+            placeholder="PKR 0"
+            value={price}
+            onChange={(e) => {
+              const val = e.target.value;
+              setPrice(val);
+              // If only one size or default variant exists and had no price, set it
+              if (sizeVariants.length === 1 && !sizeVariants[0].price) {
+                updateSizeVariantPrice(sizeVariants[0].size, "price", val);
+              }
+            }}
+            required={sizeVariants.length === 0}
+          />
           <Input id="product-compare-price" label="Compare-at Price (PKR)" type="number" placeholder="PKR 0" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
           <Input id="product-stock" label="Stock Quantity" type="number" placeholder="0" value={stock} onChange={(e) => setStock(e.target.value)} />
         </div>
 
         <p className="mt-8 border-b border-neutral-100 pb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-          Options
+          Options &amp; Variant Pricing
         </p>
 
         <div className="mt-4">
@@ -339,25 +435,83 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
               onClick={() => openDialog("size")}
               className="flex items-center gap-1 text-xs font-medium text-amber-700 hover:underline"
             >
-              <Plus size={13} /> Add New
+              <Plus size={13} /> Add New Size
             </button>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
-            {sizeOptions.map((size) => (
-              <button
-                type="button"
-                key={size.id}
-                onClick={() => toggleSize(size.value)}
-                className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-                  selectedSizes.includes(size.value)
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
-                }`}
-              >
-                {size.value}
-              </button>
-            ))}
+            {sizeOptions.map((size) => {
+              const isSelected = sizeVariants.some((v) => v.size === size.value);
+              return (
+                <button
+                  type="button"
+                  key={size.id}
+                  onClick={() => toggleSize(size.value)}
+                  className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
+                    isSelected
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+                  }`}
+                >
+                  {size.value}
+                </button>
+              );
+            })}
           </div>
+
+          {sizeVariants.length > 0 && (
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-[#FAF7F2]/60 p-4">
+              <div className="flex items-center justify-between border-b border-neutral-200/80 pb-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-700">
+                  Size-Wise Pricing
+                </p>
+                <span className="text-[11px] text-neutral-500">
+                  Enter price for each selected size
+                </span>
+              </div>
+
+              <div className="mt-3 space-y-3">
+                {sizeVariants.map((variant) => (
+                  <div
+                    key={variant.size}
+                    className="flex flex-wrap items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3 shadow-xs"
+                  >
+                    <div className="w-24 flex-shrink-0">
+                      <span className="inline-block rounded bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white">
+                        {variant.size}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 min-w-[130px]">
+                      <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                        Price (PKR) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 1500"
+                        value={variant.price}
+                        onChange={(e) => updateSizeVariantPrice(variant.size, "price", e.target.value)}
+                        required
+                        className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 focus:border-amber-600 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-[130px]">
+                      <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                        Compare-at Price (PKR)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 2000"
+                        value={variant.compareAtPrice}
+                        onChange={(e) => updateSizeVariantPrice(variant.size, "compareAtPrice", e.target.value)}
+                        className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 focus:border-amber-600 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-5">
