@@ -283,8 +283,15 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
       }
     }
 
-    const basePrice = Number(price) || (formattedVariants[0]?.price ?? 0);
-    const baseComparePrice = compareAtPrice ? Number(compareAtPrice) : formattedVariants[0]?.compareAtPrice;
+    const basePrice =
+      formattedVariants.length > 0
+        ? formattedVariants[0].price
+        : (Number(price) || 0);
+
+    const baseComparePrice =
+      formattedVariants.length > 0
+        ? formattedVariants[0].compareAtPrice
+        : (compareAtPrice ? Number(compareAtPrice) : undefined);
 
     if (!basePrice && formattedVariants.length === 0) {
       setError("Please specify a base price or at least one size variant with price.");
