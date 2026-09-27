@@ -34,6 +34,7 @@ export interface ExistingProduct {
   finishes: string[];
   images: string[];
   status: "Active" | "Draft";
+  collection?: string;
 }
 
 type SizeVariantState = {
@@ -51,6 +52,7 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
   const [name, setName] = useState(product?.name ?? "");
   const [category, setCategory] = useState(product?.category ?? "");
   const [badge, setBadge] = useState(product?.badge ?? "None");
+  const [collection, setCollection] = useState(product?.collection ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product?.price != null ? String(product.price) : "");
   const [compareAtPrice, setCompareAtPrice] = useState(
@@ -95,6 +97,8 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
   const [uploadingCount, setUploadingCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [imageError, setImageError] = useState("");
+  const [draggedImgIndex, setDraggedImgIndex] = useState<number | null>(null);
+  const [dragOverImgIndex, setDragOverImgIndex] = useState<number | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -320,6 +324,7 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
           finishes: selectedFinishes,
           images: images.map((img) => img.url),
           status,
+          collection: collection || undefined,
         }),
       });
 
@@ -393,6 +398,10 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
             <option value="Bestseller">Bestseller</option>
             <option value="New">New</option>
           </Select>
+          <Select id="product-collection" label="Showcase Collection" value={collection} onChange={(e) => setCollection(e.target.value)}>
+            <option value="">None</option>
+            <option value="poster">Poster</option>
+          </Select>
         </div>
 
         <div className="mt-4">
@@ -453,11 +462,10 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
                   type="button"
                   key={size.id}
                   onClick={() => toggleSize(size.value)}
-                  className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-                    isSelected
+                  className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${isSelected
                       ? "border-neutral-900 bg-neutral-900 text-white"
                       : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
-                  }`}
+                    }`}
                 >
                   {size.value}
                 </button>
@@ -538,11 +546,10 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
                 type="button"
                 key={finish.id}
                 onClick={() => toggleFinish(finish.value)}
-                className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-                  selectedFinishes.includes(finish.value)
+                className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${selectedFinishes.includes(finish.value)
                     ? "border-neutral-900 bg-neutral-900 text-white"
                     : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
-                }`}
+                  }`}
               >
                 {finish.value}
               </button>
@@ -574,9 +581,8 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-12 text-center transition-colors ${
-            isDragging ? "border-amber-500 bg-amber-50" : "border-neutral-300 bg-[#FAF7F2]"
-          }`}
+          className={`mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-12 text-center transition-colors ${isDragging ? "border-amber-500 bg-amber-50" : "border-neutral-300 bg-[#FAF7F2]"
+            }`}
         >
           {uploadingCount > 0 ? (
             <Loader2 size={28} className="animate-spin text-amber-600" />
@@ -598,24 +604,76 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         {imageError && <p className="mt-2 text-sm text-red-600">{imageError}</p>}
 
         {images.length > 0 && (
-          <div className="mt-4 grid grid-cols-4 gap-3">
-            {images.map((img) => (
-              <div key={img.publicId} className="group relative aspect-square overflow-hidden rounded-lg border border-neutral-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.url} alt="" className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeImage(img.publicId);
-                  }}
-                  className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                  aria-label="Remove image"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
+              <span>{images.length} images · Drag images to change display &amp; cover photo order</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {images.map((img, index) => {
+                const isImgDragging = draggedImgIndex === index;
+                const isImgOver = dragOverImgIndex === index && draggedImgIndex !== index;
+
+                return (
+                  <div
+                    key={img.publicId}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedImgIndex(index);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dragOverImgIndex !== index) {
+                        setDragOverImgIndex(index);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedImgIndex === null || draggedImgIndex === index) return;
+                      const updated = [...images];
+                      const [moved] = updated.splice(draggedImgIndex, 1);
+                      updated.splice(index, 0, moved);
+                      setImages(updated);
+                      setDraggedImgIndex(null);
+                      setDragOverImgIndex(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedImgIndex(null);
+                      setDragOverImgIndex(null);
+                    }}
+                    className={`group relative aspect-square overflow-hidden rounded-lg border transition-all select-none cursor-grab active:cursor-grabbing ${
+                      isImgDragging
+                        ? "opacity-30 scale-95 border-dashed border-amber-500 shadow-inner"
+                        : isImgOver
+                        ? "border-2 border-amber-500 bg-amber-50 scale-102 shadow-md"
+                        : "border-neutral-200 hover:border-neutral-400"
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.url} alt="" className="h-full w-full object-cover pointer-events-none" />
+
+                    {index === 0 && (
+                      <span className="absolute left-1.5 top-1.5 rounded bg-amber-800/90 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-xs">
+                        Cover Image
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeImage(img.publicId);
+                      }}
+                      className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                      aria-label="Remove image"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

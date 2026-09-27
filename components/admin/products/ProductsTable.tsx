@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles } from "lucide-react";
 import Button from "@/components/system/Button";
 import ConfirmDialog from "@/components/system/ConfirmDialog";
+import BulkPriceModal from "@/components/admin/products/BulkPriceModal";
 import { useToast } from "@/components/system/ToastProvider";
 
 interface Product {
@@ -25,6 +26,7 @@ export default function ProductsTable() {
   const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<Product | null>(null);
 
@@ -95,14 +97,32 @@ export default function ProductsTable() {
     <div>
       <div className="flex items-center justify-between">
         <p className="text-sm text-neutral-600">{loading ? "Loading..." : `${products.length} products`}</p>
-        <Link href="/admin/products/new">
-          <Button variant="primary" size="md">
-            <span className="flex items-center gap-2">
-              <Plus size={16} /> Add Product
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => setBulkModalOpen(true)}
+            className="border-amber-300 bg-amber-50/50 text-amber-900 hover:bg-amber-100/60"
+          >
+            <span className="flex items-center gap-1.5">
+              <Sparkles size={16} className="text-amber-700" /> Bulk Update Prices
             </span>
           </Button>
-        </Link>
+          <Link href="/admin/products/new">
+            <Button variant="primary" size="md">
+              <span className="flex items-center gap-2">
+                <Plus size={16} /> Add Product
+              </span>
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      <BulkPriceModal
+        open={bulkModalOpen}
+        onClose={() => setBulkModalOpen(false)}
+        onUpdated={fetchProducts}
+      />
 
       <div className="mt-5 overflow-x-auto rounded-xl bg-white">
         <table className="w-full min-w-[1000px] text-left text-sm">

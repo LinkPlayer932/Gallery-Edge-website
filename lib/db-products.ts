@@ -50,6 +50,7 @@ function mapProduct(doc: any, categoryNameMap: CategoryNameMap): Product {
     sizes,
     sizeVariants,
     finishes: doc.finishes ?? [],
+    collection: doc.collection ?? undefined,
   };
 }
 
@@ -83,6 +84,23 @@ export async function getRelatedProducts(
   return docs.map((doc) => mapProduct(doc, categoryNameMap));
 }
 
+// NEW: fetches products tagged into a homepage showcase collection
+// (e.g. collection: "poster") regardless of their category.
+export async function getProductsByCollection(
+  collection: string,
+  limit = 12
+): Promise<Product[]> {
+  await connectDB();
+  const categoryNameMap = await getCategoryNameMap();
+  const docs = await ProductModel.find({
+    collection,
+    status: { $ne: "Draft" },
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit);
+  return docs.map((doc) => mapProduct(doc, categoryNameMap));
+}
+
 export interface CategoryDisplay {
   name: string;
   slug: string;
@@ -92,7 +110,7 @@ export interface CategoryDisplay {
 
 export async function getAllCategories(): Promise<CategoryDisplay[]> {
   await connectDB();
-  const categories = await CategoryModel.find().sort({ featured: -1, order: 1, createdAt: -1 });
+  const categories = await CategoryModel.find().sort({ order: 1, createdAt: -1 });
 
   const counts = await ProductModel.aggregate([
     { $match: { status: { $ne: "Draft" } } },

@@ -14,7 +14,7 @@ function slugify(value: string) {
 export async function GET() {
   try {
     await connectDB();
-    const categories = await Category.find().sort({ featured: -1, order: 1, createdAt: -1 });
+    const categories = await Category.find().sort({ order: 1, createdAt: -1 });
     return NextResponse.json({ categories });
   } catch (error) {
     console.error("GET /api/categories error:", error);

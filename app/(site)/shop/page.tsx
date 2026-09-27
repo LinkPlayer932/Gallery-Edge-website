@@ -7,11 +7,11 @@ export const revalidate = 0;
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; collection?: string }>;
 }) {
-  const { category: categoryParam } = await searchParams;
+  const { category: categoryParam, collection: collectionParam } = await searchParams;
 
-  const [products, categories] = await Promise.all([
+  const [allProducts, categories] = await Promise.all([
     getAllProducts(),
     getAllCategories(),
   ]);
@@ -24,9 +24,28 @@ export default async function ShopPage({
       )
     : null;
 
-  const heading = selectedCategory ? selectedCategory.name : "Shop All Frames";
+  // Filter by collection tag (e.g. "poster") when present, otherwise show everything
+  // and let ProductGrid's own category filter (if any) take over as usual.
+  const products = collectionParam
+    ? allProducts.filter(
+        (p) => p.collection?.toLowerCase() === collectionParam.toLowerCase()
+      )
+    : allProducts;
+
+  const collectionLabels: Record<string, string> = {
+    poster: "Poster Frames",
+  };
+
+  const heading = selectedCategory
+    ? selectedCategory.name
+    : collectionParam
+    ? collectionLabels[collectionParam.toLowerCase()] ?? "Shop All Frames"
+    : "Shop All Frames";
+
   const subheading = selectedCategory
     ? `Explore our ${selectedCategory.name} collection`
+    : collectionParam
+    ? "Premium framed prints from our poster collection"
     : "Handcrafted premium frames for every style and space";
 
   return (

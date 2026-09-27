@@ -22,6 +22,7 @@ export interface IProduct {
   rating: number;
   reviews: number;
   status: "Active" | "Draft";
+  collection?: string;
 }
 
 const SizeVariantSchema = new Schema<ISizeVariant>(
@@ -50,6 +51,7 @@ const ProductSchema = new Schema<IProduct>(
     rating: { type: Number, default: 0 },
     reviews: { type: Number, default: 0 },
     status: { type: String, enum: ["Active", "Draft"], default: "Active" },
+    collection: { type: String },
   },
   { timestamps: true }
 );

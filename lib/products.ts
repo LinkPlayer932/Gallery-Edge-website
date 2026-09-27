@@ -21,4 +21,5 @@ export interface Product {
   sizes: string[];
   sizeVariants?: SizeVariant[];
   finishes: string[];
+  collection?: string;
 }

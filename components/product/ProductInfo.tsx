@@ -26,11 +26,11 @@ export default function ProductInfo({ product }: { product: Product }) {
   const activeVariant = product.sizeVariants?.find((v) => v.size === size);
   const currentPrice = activeVariant ? activeVariant.price : product.price;
   const currentCompareAtPrice =
-    activeVariant?.compareAtPrice != null
+    activeVariant?.compareAtPrice != null && activeVariant.compareAtPrice > 0
       ? activeVariant.compareAtPrice
-      : activeVariant
-      ? undefined
-      : product.compareAtPrice;
+      : product.compareAtPrice && product.price
+      ? Math.round(currentPrice * (product.compareAtPrice / product.price))
+      : undefined;
 
   function buildCartItem() {
     const variantParts = [size, finish].filter(Boolean);
