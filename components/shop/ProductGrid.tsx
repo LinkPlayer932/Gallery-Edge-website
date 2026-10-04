@@ -52,7 +52,7 @@ export default function ProductGrid({ products, categories = [] }: ProductGridPr
   }
 
   const filtered = useMemo(() => {
-    let result = products.filter((p) => p.price <= maxPrice);
+    let result = products.filter((p) => (p.price ?? 0) <= maxPrice);
     if (selectedCategories.length > 0) {
       const selectedLower = selectedCategories.map((s) => s.toLowerCase().trim());
       result = result.filter((p) => {
@@ -67,10 +67,10 @@ export default function ProductGrid({ products, categories = [] }: ProductGridPr
     }
     switch (sort) {
       case "price-asc":
-        result = [...result].sort((a, b) => a.price - b.price);
+        result = [...result].sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
         break;
       case "price-desc":
-        result = [...result].sort((a, b) => b.price - a.price);
+        result = [...result].sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
         break;
       case "rating":
         result = [...result].sort((a, b) => b.rating - a.rating);

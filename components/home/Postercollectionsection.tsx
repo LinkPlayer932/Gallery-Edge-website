@@ -69,9 +69,6 @@ export default async function PosterCollectionSection() {
                 <h3 className="text-sm font-medium text-[#1A1A1A] group-hover:text-[#B08D57] transition-colors">
                   {product.name}
                 </h3>
-                <p className="text-sm text-[#6B6B6B] mt-1">
-                  Rs. {product.price.toLocaleString()}
-                </p>
               </div>
             </Link>
           ))}

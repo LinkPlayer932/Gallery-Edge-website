@@ -6,6 +6,17 @@ import PriceTag from "@/components/system/PriceTag";
 import type { Product } from "@/lib/products";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const isPoster =
+    product.collection?.toLowerCase() === "poster" ||
+    product.categorySlug?.toLowerCase() === "poster" ||
+    product.categorySlug?.toLowerCase() === "posters" ||
+    product.categorySlug?.toLowerCase() === "poster-frames" ||
+    product.category?.toLowerCase() === "poster" ||
+    product.category?.toLowerCase() === "posters" ||
+    product.category?.toLowerCase() === "poster frames";
+
+  const showPrice = !isPoster && product.price != null && product.price > 0;
+
   return (
     <Link
       href={`/shop/${product.slug}`}
@@ -28,9 +39,11 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="mt-2">
           <RatingStars rating={product.rating} reviewCount={product.reviews} />
         </div>
-        <div className="mt-3">
-          <PriceTag price={product.price} compareAtPrice={product.compareAtPrice} />
-        </div>
+        {showPrice && (
+          <div className="mt-3">
+            <PriceTag price={product.price!} compareAtPrice={product.compareAtPrice} />
+          </div>
+        )}
       </div>
     </Link>
   );

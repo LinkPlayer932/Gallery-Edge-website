@@ -11,10 +11,17 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    const products = await Product.find().sort({ createdAt: -1 });
+
+    const search = request.nextUrl.searchParams.get("search");
+
+    const filter = search
+      ? { name: { $regex: search, $options: "i" } }
+      : {};
+
+    const products = await Product.find(filter).sort({ createdAt: -1 });
     return NextResponse.json({ products });
   } catch (error) {
     console.error("GET /api/products error:", error);
@@ -27,9 +34,9 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const body = await request.json();
 
-    if (!body.name || !body.price || !body.category) {
+    if (!body.name || !body.category) {
       return NextResponse.json(
-        { error: "Name, price, and category are required" },
+        { error: "Name and category are required" },
         { status: 400 }
       );
     }
@@ -44,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     const product = await Product.create({
       ...body,
+      price: body.price != null ? Number(body.price) : 0,
       slug,
     });
 

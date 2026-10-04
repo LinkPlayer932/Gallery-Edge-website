@@ -1,6 +1,6 @@
 export interface SizeVariant {
   size: string;
-  price: number;
+  price?: number;
   compareAtPrice?: number;
 }
 
@@ -15,7 +15,7 @@ export interface Product {
   badge?: "Bestseller" | "New";
   rating: number;
   reviews: number;
-  price: number;
+  price?: number;
   compareAtPrice?: number;
   description: string;
   sizes: string[];

@@ -2,7 +2,7 @@ import { Schema, models, model } from "mongoose";
 
 export interface ISizeVariant {
   size: string;
-  price: number;
+  price?: number;
   compareAtPrice?: number;
 }
 
@@ -11,7 +11,7 @@ export interface IProduct {
   slug: string;
   category: string; // category slug reference
   description: string;
-  price: number;
+  price?: number;
   compareAtPrice?: number;
   stock: number;
   badge?: "Bestseller" | "New" | "None";
@@ -28,7 +28,7 @@ export interface IProduct {
 const SizeVariantSchema = new Schema<ISizeVariant>(
   {
     size: { type: String, required: true },
-    price: { type: Number, required: true },
+    price: { type: Number, default: 0 },
     compareAtPrice: { type: Number },
   },
   { _id: false }
@@ -40,7 +40,7 @@ const ProductSchema = new Schema<IProduct>(
     slug: { type: String, required: true, unique: true },
     category: { type: String, required: true },
     description: { type: String, default: "" },
-    price: { type: Number, required: true },
+    price: { type: Number, default: 0 },
     compareAtPrice: { type: Number },
     stock: { type: Number, default: 0 },
     badge: { type: String, enum: ["Bestseller", "New", "None"], default: "None" },

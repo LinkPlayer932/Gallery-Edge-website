@@ -1,23 +1,54 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/system/Input";
 import Checkbox from "@/components/system/Checkbox";
 import Button from "@/components/system/Button";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: connect to auth API
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/customer/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/account");
+      router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-md rounded-xl bg-white p-8">
       <div className="flex flex-col gap-5">
+        {error && (
+          <p className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>
+        )}
+
         <Input
           id="login-email"
           label="Email"
@@ -44,8 +75,8 @@ export default function LoginForm() {
           </Link>
         </div>
 
-        <Button type="submit" variant="primary" size="lg">
-          Sign In
+        <Button type="submit" variant="primary" size="lg" disabled={loading}>
+          {loading ? "Signing in..." : "Sign In"}
         </Button>
 
         <p className="text-center text-sm text-neutral-500">

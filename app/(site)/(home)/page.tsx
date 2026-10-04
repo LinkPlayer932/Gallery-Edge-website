@@ -7,6 +7,8 @@ import CustomCommissionBanner from "@/components/home/CustomCommissionBanner";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import InstagramStrip from "@/components/home/InstagramStrip";
 import PosterCollectionSection from "@/components/home/Postercollectionsection";
+import MirrorShowcaseSection from "@/components/home/MirrorShowcaseSection";
+
 // import NewsletterSection from "@/components/shared/NewsletterSection";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +23,7 @@ export default function HomePage() {
       <BestsellersSection />
       <WhyGallerySection />
       <PosterCollectionSection />
+      <MirrorShowcaseSection />
       <CustomCommissionBanner />
       <TestimonialsSection />
       <InstagramStrip />

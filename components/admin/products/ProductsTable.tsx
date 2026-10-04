@@ -3,23 +3,25 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Layers } from "lucide-react";
 import Button from "@/components/system/Button";
 import ConfirmDialog from "@/components/system/ConfirmDialog";
 import BulkPriceModal from "@/components/admin/products/BulkPriceModal";
+import BulkDeleteSizesModal from "@/components/admin/products/BulkDeleteSizesModal";
 import { useToast } from "@/components/system/ToastProvider";
 
 interface Product {
   _id: string;
   name: string;
   category: string;
-  price: number;
+  price?: number;
   badge?: string;
   rating: number;
   reviews: number;
   images: string[];
   sizes?: string[];
   finishes?: string[];
+  collection?: string;
 }
 
 export default function ProductsTable() {
@@ -27,6 +29,7 @@ export default function ProductsTable() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkSizesModalOpen, setBulkSizesModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<Product | null>(null);
 
@@ -95,9 +98,19 @@ export default function ProductsTable() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-neutral-600">{loading ? "Loading..." : `${products.length} products`}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => setBulkSizesModalOpen(true)}
+            className="border-red-200 bg-red-50/40 text-red-800 hover:bg-red-100/60"
+          >
+            <span className="flex items-center gap-1.5">
+              <Trash2 size={16} className="text-red-600" /> Bulk Delete Sizes
+            </span>
+          </Button>
           <Button
             variant="outline"
             size="md"
@@ -124,6 +137,12 @@ export default function ProductsTable() {
         onUpdated={fetchProducts}
       />
 
+      <BulkDeleteSizesModal
+        open={bulkSizesModalOpen}
+        onClose={() => setBulkSizesModalOpen(false)}
+        onUpdated={fetchProducts}
+      />
+
       <div className="mt-5 overflow-x-auto rounded-xl bg-white">
         <table className="w-full min-w-[1000px] text-left text-sm">
           <thead>
@@ -139,45 +158,61 @@ export default function ProductsTable() {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr key={product._id} className="border-b border-neutral-50 last:border-0">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-[#F3EFE7]">
-                      {product.images?.[0] ? (
-                        <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
-                      ) : null}
+            {products.map((product) => {
+              const isPoster =
+                product.collection?.toLowerCase() === "poster" ||
+                product.category?.toLowerCase() === "poster" ||
+                product.category?.toLowerCase() === "posters" ||
+                product.category?.toLowerCase() === "poster frames";
+
+              return (
+                <tr key={product._id} className="border-b border-neutral-50 last:border-0">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-[#F3EFE7]">
+                        {product.images?.[0] ? (
+                          <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                        ) : null}
+                      </div>
+                      <span className="font-medium text-neutral-900">{product.name}</span>
                     </div>
-                    <span className="font-medium text-neutral-900">{product.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-neutral-600">{product.category}</td>
-                <td className="px-6 py-4 font-medium text-neutral-900">
-                  Rs. {product.price?.toLocaleString()}
-                </td>
-                <td className="px-6 py-4">{renderTags(product.sizes)}</td>
-                <td className="px-6 py-4">{renderTags(product.finishes)}</td>
-                <td className="px-6 py-4 text-neutral-600">{product.badge && product.badge !== "None" ? product.badge : "—"}</td>
-                <td className="px-6 py-4 text-neutral-600">
-                  {product.rating} ({product.reviews})
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-3 text-neutral-500">
-                    <Link href={`/admin/products/${product._id}/edit`} aria-label="Edit product" className="hover:text-amber-700">
-                      <Pencil size={16} />
-                    </Link>
-                    <button
-                      aria-label="Delete product"
-                      onClick={() => setConfirmTarget(product)}
-                      disabled={deletingId === product._id}
-                      className="hover:text-red-600 disabled:opacity-40"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-6 py-4 text-neutral-600">{product.category}</td>
+                  <td className="px-6 py-4 font-medium text-neutral-900">
+                    {isPoster && (!product.price || product.price === 0) ? (
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+                        Poster (No Price)
+                      </span>
+                    ) : product.price != null && product.price > 0 ? (
+                      `Rs. ${product.price.toLocaleString()}`
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-6 py-4">{renderTags(product.sizes)}</td>
+                  <td className="px-6 py-4">{renderTags(product.finishes)}</td>
+                  <td className="px-6 py-4 text-neutral-600">{product.badge && product.badge !== "None" ? product.badge : "—"}</td>
+                  <td className="px-6 py-4 text-neutral-600">
+                    {product.rating} ({product.reviews})
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-3 text-neutral-500">
+                      <Link href={`/admin/products/${product._id}/edit`} aria-label="Edit product" className="hover:text-amber-700">
+                        <Pencil size={16} />
+                      </Link>
+                      <button
+                        aria-label="Delete product"
+                        onClick={() => setConfirmTarget(product)}
+                        disabled={deletingId === product._id}
+                        className="hover:text-red-600 disabled:opacity-40"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

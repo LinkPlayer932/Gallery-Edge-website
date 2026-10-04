@@ -7,9 +7,16 @@ interface SizeSelectorProps {
   sizeVariants?: SizeVariant[];
   selected: string;
   onSelect: (size: string) => void;
+  hidePrice?: boolean;
 }
 
-export default function SizeSelector({ sizes, sizeVariants, selected, onSelect }: SizeSelectorProps) {
+export default function SizeSelector({
+  sizes,
+  sizeVariants,
+  selected,
+  onSelect,
+  hidePrice = false,
+}: SizeSelectorProps) {
   const displaySizes = sizes.length ? sizes : (sizeVariants?.map((v) => v.size) ?? []);
 
   return (
@@ -23,6 +30,7 @@ export default function SizeSelector({ sizes, sizeVariants, selected, onSelect }
         {displaySizes.map((size) => {
           const variant = sizeVariants?.find((v) => v.size === size);
           const isSelected = selected === size;
+          const showVariantPrice = !hidePrice && variant?.price != null && variant.price > 0;
 
           return (
             <button
@@ -36,13 +44,13 @@ export default function SizeSelector({ sizes, sizeVariants, selected, onSelect }
               }`}
             >
               <span className="text-sm font-medium">{size}</span>
-              {variant?.price ? (
+              {showVariantPrice ? (
                 <span
                   className={`mt-0.5 text-[11px] ${
                     isSelected ? "text-neutral-300" : "text-neutral-500"
                   }`}
                 >
-                  Rs. {variant.price.toLocaleString()}
+                  Rs. {variant!.price!.toLocaleString()}
                 </span>
               ) : null}
             </button>

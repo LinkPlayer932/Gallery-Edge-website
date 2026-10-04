@@ -271,6 +271,12 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
       return;
     }
 
+    const isPoster =
+      collection?.toLowerCase() === "poster" ||
+      category?.toLowerCase() === "poster" ||
+      category?.toLowerCase() === "posters" ||
+      category?.toLowerCase() === "poster-frames";
+
     const formattedVariants = sizeVariants
       .filter((v) => v.size.trim())
       .map((v) => ({
@@ -279,11 +285,13 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
       }));
 
-    // If size variants exist, validate prices
-    for (const variant of formattedVariants) {
-      if (variant.price <= 0) {
-        setError(`Please enter a valid price for size "${variant.size}".`);
-        return;
+    // If size variants exist and not a poster, validate prices
+    if (!isPoster) {
+      for (const variant of formattedVariants) {
+        if (variant.price <= 0) {
+          setError(`Please enter a valid price for size "${variant.size}".`);
+          return;
+        }
       }
     }
 
@@ -297,7 +305,7 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
         ? formattedVariants[0].compareAtPrice
         : (compareAtPrice ? Number(compareAtPrice) : undefined);
 
-    if (!basePrice && formattedVariants.length === 0) {
+    if (!isPoster && !basePrice && formattedVariants.length === 0) {
       setError("Please specify a base price or at least one size variant with price.");
       return;
     }
@@ -418,116 +426,141 @@ export default function ProductForm({ product }: { product?: ExistingProduct }) 
           Base Pricing &amp; Inventory
         </p>
 
-        <div className="mt-4 grid grid-cols-3 gap-4">
-          <Input
-            id="product-price"
-            label="Base Price (PKR)"
-            type="number"
-            placeholder="PKR 0"
-            value={price}
-            onChange={(e) => {
-              const val = e.target.value;
-              setPrice(val);
-              // If only one size or default variant exists and had no price, set it
-              if (sizeVariants.length === 1 && !sizeVariants[0].price) {
-                updateSizeVariantPrice(sizeVariants[0].size, "price", val);
-              }
-            }}
-            required={sizeVariants.length === 0}
-          />
-          <Input id="product-compare-price" label="Compare-at Price (PKR)" type="number" placeholder="PKR 0" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
-          <Input id="product-stock" label="Stock Quantity" type="number" placeholder="0" value={stock} onChange={(e) => setStock(e.target.value)} />
-        </div>
+        {(() => {
+          const isPoster =
+            collection?.toLowerCase() === "poster" ||
+            category?.toLowerCase() === "poster" ||
+            category?.toLowerCase() === "posters" ||
+            category?.toLowerCase() === "poster-frames";
 
-        <p className="mt-8 border-b border-neutral-100 pb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-          Options &amp; Variant Pricing
-        </p>
-
-        <div className="mt-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">Available Sizes</p>
-            <button
-              type="button"
-              onClick={() => openDialog("size")}
-              className="flex items-center gap-1 text-xs font-medium text-amber-700 hover:underline"
-            >
-              <Plus size={13} /> Add New Size
-            </button>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {sizeOptions.map((size) => {
-              const isSelected = sizeVariants.some((v) => v.size === size.value);
-              return (
-                <button
-                  type="button"
-                  key={size.id}
-                  onClick={() => toggleSize(size.value)}
-                  className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${isSelected
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
-                    }`}
-                >
-                  {size.value}
-                </button>
-              );
-            })}
-          </div>
-
-          {sizeVariants.length > 0 && (
-            <div className="mt-4 rounded-xl border border-neutral-200 bg-[#FAF7F2]/60 p-4">
-              <div className="flex items-center justify-between border-b border-neutral-200/80 pb-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-700">
-                  Size-Wise Pricing
-                </p>
-                <span className="text-[11px] text-neutral-500">
-                  Enter price for each selected size
-                </span>
+          return (
+            <>
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                <Input
+                  id="product-price"
+                  label={`Base Price (PKR)${isPoster ? " (Optional for Poster)" : ""}`}
+                  type="number"
+                  placeholder="PKR 0"
+                  value={price}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPrice(val);
+                    if (sizeVariants.length === 1 && !sizeVariants[0].price) {
+                      updateSizeVariantPrice(sizeVariants[0].size, "price", val);
+                    }
+                  }}
+                  required={!isPoster && sizeVariants.length === 0}
+                />
+                <Input
+                  id="product-compare-price"
+                  label="Compare-at Price (PKR)"
+                  type="number"
+                  placeholder="PKR 0"
+                  value={compareAtPrice}
+                  onChange={(e) => setCompareAtPrice(e.target.value)}
+                />
+                <Input
+                  id="product-stock"
+                  label="Stock Quantity"
+                  type="number"
+                  placeholder="0"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                />
               </div>
 
-              <div className="mt-3 space-y-3">
-                {sizeVariants.map((variant) => (
-                  <div
-                    key={variant.size}
-                    className="flex flex-wrap items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3 shadow-xs"
+              <p className="mt-8 border-b border-neutral-100 pb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                Options &amp; Variant Pricing
+              </p>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-600">Available Sizes</p>
+                  <button
+                    type="button"
+                    onClick={() => openDialog("size")}
+                    className="flex items-center gap-1 text-xs font-medium text-amber-700 hover:underline"
                   >
-                    <div className="w-24 flex-shrink-0">
-                      <span className="inline-block rounded bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white">
-                        {variant.size}
+                    <Plus size={13} /> Add New Size
+                  </button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {sizeOptions.map((size) => {
+                    const isSelected = sizeVariants.some((v) => v.size === size.value);
+                    return (
+                      <button
+                        type="button"
+                        key={size.id}
+                        onClick={() => toggleSize(size.value)}
+                        className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${isSelected
+                            ? "border-neutral-900 bg-neutral-900 text-white"
+                            : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+                          }`}
+                      >
+                        {size.value}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {sizeVariants.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-neutral-200 bg-[#FAF7F2]/60 p-4">
+                    <div className="flex items-center justify-between border-b border-neutral-200/80 pb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-neutral-700">
+                        Size-Wise Pricing
+                      </p>
+                      <span className="text-[11px] text-neutral-500">
+                        {isPoster ? "Prices are optional for poster collection" : "Enter price for each selected size"}
                       </span>
                     </div>
 
-                    <div className="flex-1 min-w-[130px]">
-                      <label className="block text-[11px] font-medium text-neutral-600 mb-1">
-                        Price (PKR) <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 1500"
-                        value={variant.price}
-                        onChange={(e) => updateSizeVariantPrice(variant.size, "price", e.target.value)}
-                        required
-                        className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 focus:border-amber-600 focus:outline-none"
-                      />
-                    </div>
+                    <div className="mt-3 space-y-3">
+                      {sizeVariants.map((variant) => (
+                        <div
+                          key={variant.size}
+                          className="flex flex-wrap items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3 shadow-xs"
+                        >
+                          <div className="w-24 flex-shrink-0">
+                            <span className="inline-block rounded bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white">
+                              {variant.size}
+                            </span>
+                          </div>
 
-                    <div className="flex-1 min-w-[130px]">
-                      <label className="block text-[11px] font-medium text-neutral-600 mb-1">
-                        Compare-at Price (PKR)
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 2000"
-                        value={variant.compareAtPrice}
-                        onChange={(e) => updateSizeVariantPrice(variant.size, "compareAtPrice", e.target.value)}
-                        className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 focus:border-amber-600 focus:outline-none"
-                      />
+                          <div className="flex-1 min-w-[130px]">
+                            <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                              Price (PKR) {!isPoster && <span className="text-red-500">*</span>}
+                            </label>
+                            <input
+                              type="number"
+                              placeholder={isPoster ? "Optional (PKR 0)" : "e.g. 1500"}
+                              value={variant.price}
+                              onChange={(e) => updateSizeVariantPrice(variant.size, "price", e.target.value)}
+                              required={!isPoster}
+                              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 focus:border-amber-600 focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="flex-1 min-w-[130px]">
+                            <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                              Compare-at Price (PKR)
+                            </label>
+                            <input
+                              type="number"
+                              placeholder="e.g. 2000"
+                              value={variant.compareAtPrice}
+                              onChange={(e) => updateSizeVariantPrice(variant.size, "compareAtPrice", e.target.value)}
+                              className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 focus:border-amber-600 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          )}
-        </div>
+            </>
+          );
+        })()}
 
         <div className="mt-5">
           <div className="flex items-center justify-between">

@@ -22,6 +22,15 @@ export default function ProductInfo({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
+  const isPoster =
+    product.collection?.toLowerCase() === "poster" ||
+    product.categorySlug?.toLowerCase() === "poster" ||
+    product.categorySlug?.toLowerCase() === "posters" ||
+    product.categorySlug?.toLowerCase() === "poster-frames" ||
+    product.category?.toLowerCase() === "poster" ||
+    product.category?.toLowerCase() === "posters" ||
+    product.category?.toLowerCase() === "poster frames";
+
   // Find active variant pricing for selected size
   const activeVariant = product.sizeVariants?.find((v) => v.size === size);
   const currentPrice = activeVariant ? activeVariant.price : product.price;
@@ -29,8 +38,10 @@ export default function ProductInfo({ product }: { product: Product }) {
     activeVariant?.compareAtPrice != null && activeVariant.compareAtPrice > 0
       ? activeVariant.compareAtPrice
       : product.compareAtPrice && product.price
-      ? Math.round(currentPrice * (product.compareAtPrice / product.price))
+      ? Math.round((currentPrice ?? 0) * (product.compareAtPrice / product.price))
       : undefined;
+
+  const showPrice = !isPoster && currentPrice != null && currentPrice > 0;
 
   function buildCartItem() {
     const variantParts = [size, finish].filter(Boolean);
@@ -40,7 +51,7 @@ export default function ProductInfo({ product }: { product: Product }) {
       id: uniqueId,
       name: product.name,
       variant: variantStr,
-      price: currentPrice,
+      price: currentPrice ?? 0,
       image: product.image,
     };
   }
@@ -78,9 +89,11 @@ export default function ProductInfo({ product }: { product: Product }) {
         </a>
       </div>
 
-      <div className="mt-4">
-        <PriceTag price={currentPrice} compareAtPrice={currentCompareAtPrice} size="lg" />
-      </div>
+      {showPrice && currentPrice != null && (
+        <div className="mt-4">
+          <PriceTag price={currentPrice} compareAtPrice={currentCompareAtPrice} size="lg" />
+        </div>
+      )}
 
       <p className="mt-4 text-sm leading-relaxed text-neutral-600">{product.description}</p>
 
@@ -90,6 +103,7 @@ export default function ProductInfo({ product }: { product: Product }) {
           sizeVariants={product.sizeVariants}
           selected={size}
           onSelect={setSize}
+          hidePrice={isPoster}
         />
         <FinishSelector finishes={product.finishes} selected={finish} onSelect={setFinish} />
       </div>

@@ -22,7 +22,7 @@ function mapProduct(doc: any, categoryNameMap: CategoryNameMap): Product {
   const sizeVariants = doc.sizeVariants?.length
     ? doc.sizeVariants.map((sv: any) => ({
         size: sv.size,
-        price: Number(sv.price),
+        price: sv.price != null && sv.price > 0 ? Number(sv.price) : undefined,
         compareAtPrice: sv.compareAtPrice != null ? Number(sv.compareAtPrice) : undefined,
       }))
     : undefined;
@@ -44,7 +44,7 @@ function mapProduct(doc: any, categoryNameMap: CategoryNameMap): Product {
     badge: doc.badge && doc.badge !== "None" ? doc.badge : undefined,
     rating: doc.rating ?? 0,
     reviews: doc.reviews ?? 0,
-    price: doc.price,
+    price: doc.price != null ? Number(doc.price) : undefined,
     compareAtPrice: doc.compareAtPrice,
     description: doc.description ?? "",
     sizes,
