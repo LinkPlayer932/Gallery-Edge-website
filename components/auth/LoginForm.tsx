@@ -43,10 +43,15 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto mt-8 max-w-md rounded-xl bg-white p-8">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto mt-8 max-w-md rounded-xl bg-white p-8"
+    >
       <div className="flex flex-col gap-5">
         {error && (
-          <p className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>
+          <p className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-600">
+            {error}
+          </p>
         )}
 
         <Input
@@ -70,7 +75,10 @@ export default function LoginForm() {
 
         <div className="flex items-center justify-between">
           <Checkbox id="remember-me" label="Remember me" />
-          <Link href="#" className="text-xs font-medium text-amber-700 hover:underline">
+          <Link
+            href="/account/forgot-password"
+            className="text-xs font-medium text-amber-700 hover:underline"
+          >
             Forgot password?
           </Link>
         </div>
@@ -81,7 +89,10 @@ export default function LoginForm() {
 
         <p className="text-center text-sm text-neutral-500">
           New to Gallery Edge?{" "}
-          <Link href="/account/register" className="font-medium text-amber-700 hover:underline">
+          <Link
+            href="/account/register"
+            className="font-medium text-amber-700 hover:underline"
+          >
             Create an account
           </Link>
         </p>

@@ -8,6 +8,10 @@ export interface ICustomer {
   password?: string;
   totalOrders: number;
   totalSpent: number;
+  isVerified: boolean;
+  verificationToken?: string;
+  resetToken?: string;
+  resetTokenExpiry?: Date;
   comparePassword?: (candidate: string) => Promise<boolean>;
 }
 
@@ -19,6 +23,10 @@ const CustomerSchema = new Schema<ICustomer>(
     password: { type: String, select: false },
     totalOrders: { type: Number, default: 0 },
     totalSpent: { type: Number, default: 0 },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, select: false },
+    resetToken: { type: String, select: false },
+    resetTokenExpiry: { type: Date, select: false },
   },
   { timestamps: true }
 );
